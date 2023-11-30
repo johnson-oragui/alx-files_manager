@@ -30,7 +30,7 @@ class RedisClient {
     }
 
     async close() {
-      await this.client.quit()
+      await this.client.quit();
     }
 
 }
