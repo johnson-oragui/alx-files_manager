@@ -15,7 +15,7 @@ class RedisClient {
       return true;
     } else {
       console.log('not ready');
-      return true;
+      return false;
     }
   }
 
