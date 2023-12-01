@@ -1,0 +1,51 @@
+$ wget http://download.redis.io/releases/redis-6.0.10.tar.gz
+$ tar xzf redis-6.0.10.tar.gz
+$ cd redis-6.0.10
+$ make
+Start Redis in the background with src/redis-server
+$ src/redis-server &
+Make sure that the server is working with a ping src/redis-cli ping
+PONG
+
+Using the Redis client again, set the value School for the key Mine
+$ 127.0.0.1:[Port]> set Mine School
+$ OK
+$ 127.0.0.1:[Port]> get Mine
+$ "School"
+Kill the server with the process id of the redis-server (hint: use ps and grep)
+ 
+$ ps ax | grep redis-server
+$ redis-cli info server | grep process_id
+$ redis-cli info server | awk -F: '/^process_id/ {print $2}'
+
+
+$ kill [PID_OF_Redis_Server]
+
+
+
+In the context of the kill command, -9 represents the signal number, and it
+specifically refers to the signal named "SIGKILL." Signals are software interrupts
+that are used to communicate with processes in Unix-like operating systems.
+
+The -9 option with the kill command sends the SIGKILL signal to the specified process
+ID (PID). This signal is a powerful one, and when a process receives SIGKILL, it is
+immediately terminated without any chance to perform cleanup or handle the signal.
+It forcefully kills the process.
+
+Here's a breakdown of the command you provided:
+
+kill -9 65
+kill: The command used to send signals to processes.
+-9: The signal option, indicating that the SIGKILL signal should be sent.
+65: The process ID (PID) of the process you want to terminate.
+
+
+So, the command is telling the operating system to forcefully terminate the process
+with the PID 65 using the SIGKILL signal. This is often used when a process is
+unresponsive or needs to be terminated immediately.
+
+
+
+
+
+
