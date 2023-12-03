@@ -1,0 +1,101 @@
+// Insert a user into the 'users' collection
+await usersCollection.insertOne({ username: 'john_doe', email: 'john@example.com' });
+
+// Insert a file into the 'files' collection
+await filesCollection.insertOne({ filename: 'document.txt', size: 1024, uploadedBy: 'john_doe' });
+
+// Insert multiple users into the 'users' collection
+await usersCollection.insertMany([
+  { username: 'alice', email: 'alice@example.com' },
+  { username: 'bob', email: 'bob@example.com' },
+  { username: 'charlie', email: 'charlie@example.com' },
+]);
+
+// Insert multiple files into the 'files' collection
+await filesCollection.insertMany([
+  { filename: 'document1.txt', size: 2048, uploadedBy: 'alice' },
+  { filename: 'document2.txt', size: 3072, uploadedBy: 'bob' },
+  { filename: 'document3.txt', size: 4096, uploadedBy: 'charlie' },
+]);
+
+// Find a user by username from the 'users' collection
+const user = await usersCollection.findOne({ username: 'john_doe' });
+console.log('Found user:', user);
+
+// Find all files uploaded by 'john_doe' from the 'files' collection
+const userFiles = await filesCollection.find({ uploadedBy: 'john_doe' }).toArray();
+console.log('Files uploaded by john_doe:', userFiles);
+
+// Update a user's email in the 'users' collection
+await usersCollection.updateOne({ username: 'john_doe' }, { $set: { email: 'new_email@example.com' } });
+
+// Update the size of a file in the 'files' collection
+await filesCollection.updateOne({ filename: 'document.txt' }, { $set: { size: 2048 } });
+
+// Delete a user by username from the 'users' collection
+await usersCollection.deleteOne({ username: 'john_doe' });
+
+// Delete a file by filename from the 'files' collection
+await filesCollection.deleteOne({ filename: 'document.txt' });
+
+
+// Aggregation example: Count the total size of files uploaded by each user
+const aggregationResult = await filesCollection.aggregate([
+  {
+    $group: {
+      _id: '$uploadedBy',
+      totalSize: { $sum: '$size' },
+    },
+  },
+]).toArray();
+
+console.log('Total size of files uploaded by each user:', aggregationResult);
+
+// Create an index on the 'username' field in the 'users' collection
+await usersCollection.createIndex({ username: 1 });
+
+// Create a compound index on multiple fields in the 'files' collection
+await filesCollection.createIndex({ filename: 1, uploadedBy: 1 });
+
+// Upsert a user by username in the 'users' collection (update if exists, insert if not)
+await usersCollection.updateOne(
+  { username: 'john_doe' },
+  { $set: { email: 'john@example.com' } },
+  { upsert: true }
+);
+
+// Upsert a file by filename in the 'files' collection
+await filesCollection.updateOne(
+  { filename: 'document.txt' },
+  { $set: { size: 1024, uploadedBy: 'john_doe' } },
+  { upsert: true }
+);
+
+// Perform multiple write operations in a single batch in the 'users' collection
+const bulkUsers = usersCollection.initializeOrderedBulkOp();
+bulkUsers.insert({ username: 'user1', email: 'user1@example.com' });
+bulkUsers.find({ username: 'user2' }).upsert().update({ $set: { email: 'user2@example.com' } });
+bulkUsers.insert({ username: 'user3', email: 'user3@example.com' });
+await bulkUsers.execute();
+
+// Create a text index on the 'content' field in the 'posts' collection
+await postsCollection.createIndex({ content: 'text' });
+
+// Perform a text search in the 'posts' collection
+const searchText = 'mongodb';
+const searchResults = await postsCollection.find({ $text: { $search: searchText } }).toArray();
+console.log('Search results:', searchResults);
+
+// Use $lookup to perform a left outer join between 'users' and 'comments' collections
+const resultWithLookup = await usersCollection.aggregate([
+  {
+    $lookup: {
+      from: 'comments',
+      localField: 'username',
+      foreignField: 'commenter',
+      as: 'user_comments',
+    },
+  },
+]).toArray();
+
+console.log('Users with their comments:', resultWithLookup);
