@@ -1,0 +1,599 @@
+import mongoDB public GPG key:
+
+$ wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
+
+Create a list file for MongoDB:
+
+$ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+
+Update the package list:
+
+$ sudo apt-get update
+
+Install MongoDB:
+
+$ sudo apt-get install -y mongodb-org
+
+Start the MongoDB service:
+
+$ sudo systemctl start mongod
+
+Enable MongoDB to start on boot:
+
+$ sudo systemctl enable mongod
+
+Install the MongoDB Node.js driver:
+
+$ npm install mongodb
+
+if this error occurs:
+
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
+
+The following packages have unmet dependencies:
+ mongodb-org-mongos : Depends: libssl1.1 (>= 1.1.1) but it is not installable
+ mongodb-org-server : Depends: libssl1.1 (>= 1.1.1) but it is not installable
+ mongodb-org-shell : Depends: libssl1.1 (>= 1.1.1) but it is not installable
+E: Unable to correct problems, you have held broken packages.
+
+address the issue by:
+
+Fix Broken Packages:
+
+$ sudo apt-get install -f
+
+Upgrade Installed Packages:
+
+$ sudo apt-get upgrade
+
+Install Required Dependencies:
+
+$ sudo apt-get install -y libssl1.1
+
+if this error occurs:
+
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Package libssl1.1 is not available, but is referred to by another package.
+This may mean that the package is missing, has been obsoleted, or
+is only available from another source
+
+E: Package 'libssl1.1' has no installation candidate
+
+Check for libssl1.1:
+
+$ apt-cache policy libssl1.1
+
+If libssl1.1 is not available, you can try downloading it from official rep
+
+$ wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+Install it:
+
+$ sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+Retry MongoDB Installation:
+
+$ sudo apt-get install -y mongodb-org
+
+########################################
+or
+
+Remove mongodb-org-tools:
+
+$ sudo dpkg -r --force-all mongodb-org-tools
+
+Fix Broken Dependencies:
+
+$ sudo apt --fix-broken install
+
+Remove MongoDB Packages:
+
+$ sudo apt remove mongodb-org mongodb-org-tools mongodb-org-database mongodb-org-database-tools-extra
+
+Install MongoDB:
+
+$ sudo apt install mongodb-org
+
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc |  gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg > /dev/null
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+sudo apt update
+sudo apt install mongodb-org
+
+
+
+CONNECT with node js
+
+const { MongoClient } = require('mongodb');
+
+const url = 'mongodb://localhost:27017'; // Default MongoDB connection string
+const dbName = 'mydatabase';
+
+const client = new MongoClient(url, { useUnifiedTopology: true });
+
+async function connect() {
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB');
+  } catch (err) {
+    console.error('Error connecting to MongoDB', err);
+  }
+}
+
+connect();
+
+
+
+$ wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | apt-key add -
+$ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" > /etc/apt/sources.list.d/mongodb-org-4.2.list
+$ sudo apt-get update
+$ sudo apt-get install -y mongodb-org
+...
+$  sudo service mongod status
+mongod start/running, process 3627
+$ mongo --version
+MongoDB shell version v4.2.8
+git version: 43d25964249164d76d5e04dd6cf38f6111e21f5f
+OpenSSL version: OpenSSL 1.1.1  11 Sep 2018
+allocator: tcmalloc
+modules: none
+build environment:
+    distmod: ubuntu1804
+    distarch: x86_64
+    target_arch: x86_64
+$  
+$ pip3 install pymongo
+$ python3
+>>> import pymongo
+>>> pymongo.__version__
+'3.10.1'
+
+
+
+sudo service mongod stop
+sudo apt-get purge mongodb-org*
+sudo rm -r /var/log/mongodb
+sudo rm -r /var/lib/mongodb
+sudo userdel -r mongodb
+sudo rm /etc/apt/sources.list.d/mongodb-org-4.4.list
+sudo apt-get update
+sudo apt-get autoremove
+sudo apt-get clean
+sudo apt remove mongodb-org
+sudo apt remove mongodb-org-tools
+sudo apt remove mongodb-org-database
+sudo apt remove mongodb-org-database-tools-extra
+
+
+To remove entries related to MongoDB from your package manager's sources, you can follow these steps:
+
+cd /etc/apt/sources.list.d/
+cd /etc/apt/sources.list.d/
+sudo rm [filename]
+
+After removing the MongoDB-related files, update the package information:
+bash sudo apt-get update
+
+
+Open sidebar
+MongoDB Start Issues
+
+ChatGPT 3.5
+
+User
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ sudo mongod start
+{"t":{"$date":"2023-12-02T21:42:39.261+01:00"},"s":"I",  "c":"CONTROL",  "id":23285,   "ctx":"-","msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
+{"t":{"$date":"2023-12-02T21:42:39.262+01:00"},"s":"I",  "c":"NETWORK",  "id":4915701, "ctx":"main","msg":"Initialized wire specification","attr":{"spec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":17},"incomingInternalClient":{"minWireVersion":0,"maxWireVersion":17},"outgoing":{"minWireVersion":6,"maxWireVersion":17},"isInternalClient":true}}}
+{"t":{"$date":"2023-12-02T21:42:39.264+01:00"},"s":"I",  "c":"NETWORK",  "id":4648601, "ctx":"main","msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set tcpFastOpenServer, tcpFastOpenClient, and tcpFastOpenQueueSize."}
+{"t":{"$date":"2023-12-02T21:42:39.265+01:00"},"s":"I",  "c":"REPL",     "id":5123008, "ctx":"main","msg":"Successfully registered PrimaryOnlyService","attr":{"service":"TenantMigrationDonorService","namespace":"config.tenantMigrationDonors"}}
+{"t":{"$date":"2023-12-02T21:42:39.265+01:00"},"s":"I",  "c":"REPL",     "id":5123008, "ctx":"main","msg":"Successfully registered PrimaryOnlyService","attr":{"service":"TenantMigrationRecipientService","namespace":"config.tenantMigrationRecipients"}}
+{"t":{"$date":"2023-12-02T21:42:39.265+01:00"},"s":"I",  "c":"REPL",     "id":5123008, "ctx":"main","msg":"Successfully registered PrimaryOnlyService","attr":{"service":"ShardSplitDonorService","namespace":"config.tenantSplitDonors"}}
+Invalid command: start
+Options:
+  --networkMessageCompressors arg (=snappy,zstd,zlib)
+                                        Comma-separated list of compressors to 
+                                        use for network messages
+
+General options:
+  -h [ --help ]                         Show this usage information
+  --version                             Show version information
+  -f [ --config ] arg                   Configuration file specifying 
+                                        additional options
+  --configExpand arg                    Process expansion directives in config 
+                                        file (none, exec, rest)
+  --port arg                            Specify port number - 27017 by default
+  --ipv6                                Enable IPv6 support (disabled by 
+                                        default)
+  --listenBacklog arg (=4096)           Set socket listen backlog size
+  --maxConns arg (=1000000)             Max number of simultaneous connections
+  --pidfilepath arg                     Full path to pidfile (if not set, no 
+                                        pidfile is created)
+  --timeZoneInfo arg                    Full path to time zone info directory, 
+                                        e.g. /usr/share/zoneinfo
+  --nounixsocket                        Disable listening on unix sockets
+  --unixSocketPrefix arg                Alternative directory for UNIX domain 
+                                        sockets (defaults to /tmp)
+  --filePermissions arg                 Permissions to set on UNIX domain 
+                                        socket file - 0700 by default
+  --fork                                Fork server process
+  -v [ --verbose ] [=arg(=v)]           Be more verbose (include multiple times
+                                        for more verbosity e.g. -vvvvv)
+  --quiet                               Quieter output
+  --logpath arg                         Log file to send write to instead of 
+                                        stdout - has to be a file, not 
+                                        directory
+  --syslog                              Log to system's syslog facility instead
+                                        of file or stdout
+  --syslogFacility arg                  syslog facility used for mongodb syslog
+                                        message
+  --logappend                           Append to logpath instead of 
+                                        over-writing
+  --logRotate arg                       Set the log rotation behavior 
+                                        (rename|reopen)
+  --timeStampFormat arg                 Desired format for timestamps in log 
+                                        messages. One of iso8601-utc or 
+                                        iso8601-local
+  --setParameter arg                    Set a configurable parameter
+  --bind_ip arg                         Comma separated list of ip addresses to
+                                        listen on - localhost by default
+  --bind_ip_all                         Bind to all ip addresses
+  --noauth                              Run without security
+  --transitionToAuth                    For rolling access control upgrade. 
+                                        Attempt to authenticate over outgoing 
+                                        connections and proceed regardless of 
+                                        success. Accept incoming connections 
+                                        with or without authentication.
+  --slowms arg (=100)                   Value of slow for profile and console 
+                                        log
+  --slowOpSampleRate arg (=1)           Fraction of slow ops to include in the 
+                                        profile and console log
+  --profileFilter arg                   Query predicate to control which 
+                                        operations are logged and profiled
+  --auth                                Run with security
+  --clusterIpSourceAllowlist arg        Network CIDR specification of permitted
+                                        origin for `__system` access
+  --profile arg                         0=off 1=slow, 2=all
+  --cpu                                 Periodically show cpu and iowait 
+                                        utilization
+  --sysinfo                             Print some diagnostic system 
+                                        information
+  --noscripting                         Disable scripting engine
+  --notablescan                         Do not allow table scans
+  --shutdown                            Kill a running server (for init 
+                                        scripts)
+  --keyFile arg                         Private key for cluster authentication
+  --clusterAuthMode arg                 Authentication mode used for cluster 
+                                        authentication. Alternatives are 
+                                        (keyFile|sendKeyFile|sendX509|x509)
+
+Replication options:
+  --oplogSize arg                       Size to use (in MB) for replication op 
+                                        log. default is 5% of disk space (i.e. 
+                                        large is good)
+
+Replica set options:
+  --replSet arg                         arg is <setname>[/<optionalseedhostlist
+                                        >]
+  --enableMajorityReadConcern [=arg(=1)] (=1)
+                                        Enables majority readConcern. 
+                                        enableMajorityReadConcern=false is no 
+                                        longer supported
+
+Serverless mode:
+  --serverless arg                      Serverless mode implies replication is 
+                                        enabled, cannot be used with replSet or
+                                        replSetName.
+
+Sharding options:
+  --configsvr                           Declare this is a config db of a 
+                                        cluster; default port 27019; default 
+                                        dir /data/configdb
+  --shardsvr                            Declare this is a shard db of a 
+                                        cluster; default port 27018
+
+Storage options:
+  --storageEngine arg                   What storage engine to use - defaults 
+                                        to wiredTiger if no data files present
+  --dbpath arg                          Directory for datafiles - defaults to 
+                                        /data/db
+  --directoryperdb                      Each database will be stored in a 
+                                        separate directory
+  --syncdelay arg (=60)                 Seconds between disk syncs
+  --journalCommitInterval arg (=100)    how often to group/batch commit (ms)
+  --upgrade                             Upgrade db if needed
+  --repair                              Run repair on all dbs
+  --restore                             This should only be used when restoring
+                                        from a backup. Mongod will behave 
+                                        differently by handling collections 
+                                        with missing data files, allowing 
+                                        database renames, skipping oplog 
+                                        entries for collections not restored 
+                                        and more.
+  --journal                             Enable journaling
+  --nojournal                           Disable journaling (journaling is on by
+                                        default for 64 bit)
+  --oplogMinRetentionHours arg (=0)     Minimum number of hours to preserve in 
+                                        the oplog. Default is 0 (turned off). 
+                                        Fractions are allowed (e.g. 1.5 hours)
+
+TLS Options:
+  --tlsOnNormalPorts                    Use TLS on configured ports
+  --tlsMode arg                         Set the TLS operation mode 
+                                        (disabled|allowTLS|preferTLS|requireTLS
+                                        )
+  --tlsCertificateKeyFile arg           Certificate and key file for TLS
+  --tlsCertificateKeyFilePassword arg   Password to unlock key in the TLS 
+                                        certificate key file
+  --tlsClusterFile arg                  Key file for internal TLS 
+                                        authentication
+  --tlsClusterPassword arg              Internal authentication key file 
+                                        password
+  --tlsCAFile arg                       Certificate Authority file for TLS
+  --tlsClusterCAFile arg                CA used for verifying remotes during 
+                                        inbound connections
+  --tlsCRLFile arg                      Certificate Revocation List file for 
+                                        TLS
+  --tlsDisabledProtocols arg            Comma separated list of TLS protocols 
+                                        to disable [TLS1_0,TLS1_1,TLS1_2,TLS1_3
+                                        ]
+  --tlsAllowConnectionsWithoutCertificates 
+                                        Allow client to connect without 
+                                        presenting a certificate
+  --tlsAllowInvalidHostnames            Allow server certificates to provide 
+                                        non-matching hostnames
+  --tlsAllowInvalidCertificates         Allow connections to servers with 
+                                        invalid certificates
+  --tlsLogVersions arg                  Comma separated list of TLS protocols 
+                                        to log on connect [TLS1_0,TLS1_1,TLS1_2
+                                        ,TLS1_3]
+
+WiredTiger options:
+  --wiredTigerCacheSizeGB arg           Maximum amount of memory to allocate 
+                                        for cache; Defaults to 1/2 of physical 
+                                        RAM
+  --zstdDefaultCompressionLevel arg (=6)
+                                        Default compression level for zstandard
+                                        compressor
+  --wiredTigerJournalCompressor arg (=snappy)
+                                        Use a compressor for log records 
+                                        [none|snappy|zlib|zstd]
+  --wiredTigerDirectoryForIndexes       Put indexes and data in different 
+                                        directories
+  --wiredTigerCollectionBlockCompressor arg (=snappy)
+                                        Block compression algorithm for 
+                                        collection data [none|snappy|zlib|zstd]
+  --wiredTigerIndexPrefixCompression arg (=1)
+                                        Use prefix compression on row-store 
+                                        leaf pages
+
+AWS IAM Options:
+  --awsIamSessionToken arg              AWS Session Token for temporary 
+                                        credentials
+
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ sudo service mongod start
+mongod: unrecognized service
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ 
+
+ChatGPT
+It looks like you are trying to start the MongoDB server, but there seems to be an issue with the command you used.
+
+If you installed MongoDB manually, you can use the following command:
+
+bash
+Copy code
+sudo mongod --fork --logpath /var/log/mongodb.log
+This command will start MongoDB as a background process (--fork) and specify the log file path (--logpath). Make sure to adjust the log file path based on your system's configuration.
+
+If you installed MongoDB using a package manager, the service name might be different. You can check the available services by using:
+
+bash
+Copy code
+sudo service --status-all
+Look for a service that resembles MongoDB, and then start it using:
+
+bash
+Copy code
+sudo service <mongodb-service-name> start
+If you are using MongoDB 5.0 or later, the mongod command may have additional options or require a configuration file. In that case, you can use:
+
+bash
+Copy code
+sudo mongod --config /etc/mongod.conf
+Adjust the configuration file path based on your system.
+
+Remember to check the MongoDB documentation for the specific version you have installed for the correct commands and configurations.
+
+
+
+
+User
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ sudo service --status-all
+ [ - ]  apparmor
+ [ ? ]  apport
+ [ - ]  console-setup.sh
+ [ - ]  cron
+ [ - ]  dbus
+ [ ? ]  hwclock.sh
+ [ + ]  irqbalance
+ [ - ]  keyboard-setup.sh
+ [ ? ]  kmod
+ [ ? ]  plymouth
+ [ ? ]  plymouth-log
+ [ - ]  procps
+ [ - ]  redis-server
+ [ - ]  rsync
+ [ - ]  screen-cleanup
+ [ - ]  ssh
+ [ - ]  udev
+ [ - ]  ufw
+ [ - ]  unattended-upgrades
+ [ - ]  uuidd
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ 
+
+ChatGPT
+It seems that the mongod service is not listed among the available services on your system. This could mean that MongoDB is not installed as a service, or it might be installed with a different service name.
+
+Since MongoDB is not listed in the services, let's try starting it using the mongod command directly. Make sure to specify the appropriate options and configuration file if needed.
+
+bash
+Copy code
+sudo mongod --fork --logpath /var/log/mongodb.log
+If you encounter any issues or if MongoDB was installed with a specific configuration, you might need to refer to the MongoDB documentation or installation instructions for your system.
+
+If you're still having trouble, please provide more details about how MongoDB was installed on your system, and I can offer more specific assistance.
+
+
+
+
+User
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ sudo mongod --config /etc/mongod.conf
+^Cjohnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_managersudo mongod --fork --logpath /var/log/mongodb.logog
+about to fork child process, waiting until server is ready for connections.
+forked process: 9552
+ERROR: child process failed, exited with 100
+To see additional information in this output, start without the "--fork" option.
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ 
+
+ChatGPT
+It looks like there's an issue with starting the mongod process, and it failed with error code 100. The error message suggests that starting the process in the background (--fork) might be hiding some useful information.
+
+Try running mongod without the --fork option to see the error message directly in the console:
+
+bash
+Copy code
+sudo mongod --config /etc/mongod.conf
+This will start MongoDB in the foreground, and you should see any error messages or issues that prevent it from starting. Once you identify the issue, you can address it accordingly.
+
+If there are specific error messages that you are unsure about, please share them here, and I'll do my best to assist you further.
+
+
+
+
+User
+i used 'sudo mongod --config /etc/mongod.conf
+' and there is no response, no message , it is just blank
+
+ChatGPT
+If there is no response or any error message when you run sudo mongod --config /etc/mongod.conf, and the command seems to be hanging without any output, it's possible that MongoDB is encountering an issue during startup.
+
+Here are a few steps you can take to troubleshoot:
+
+Check Log Files:
+Open the MongoDB log file to see if there are any error messages or information about why the process might be failing. By default, MongoDB logs are located at /var/log/mongodb/mongod.log. You can use a text editor or cat to view the contents of the log file:
+
+bash
+Copy code
+cat /var/log/mongodb/mongod.log
+Check Permissions:
+Ensure that MongoDB has the necessary permissions to read and write to its data directory and log file. The user running MongoDB should have the appropriate permissions. You might need to change the ownership of the MongoDB data directory and log file:
+
+bash
+Copy code
+sudo chown -R mongodb:mongodb /var/log/mongodb
+Check Config File:
+Verify that the MongoDB configuration file (/etc/mongod.conf) is correctly set up. Pay attention to paths, file permissions, and other configurations. Ensure that the paths specified in the config file exist and are accessible.
+
+Manually Create Directories:
+If the data directory specified in the config file does not exist, create it manually and ensure it has the correct permissions:
+
+bash
+Copy code
+sudo mkdir -p /var/lib/mongodb
+sudo chown -R mongodb:mongodb /var/lib/mongodb
+Run MongoDB Manually:
+Try running MongoDB without specifying a config file to see if there are any issues:
+
+bash
+Copy code
+sudo mongod
+This will start MongoDB in the foreground, and you should see any error messages directly in the console.
+
+After performing these steps, you should have more information about why MongoDB is not starting. If you encounter any specific error messages or issues, please share them here so that I can provide further assistance.
+
+
+
+
+User
+johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ sudo mongod
+{"t":{"$date":"2023-12-02T21:48:59.167+01:00"},"s":"I",  "c":"NETWORK",  "id":4915701, "ctx":"-","msg":"Initialized wire specification","attr":{"spec":{"incomingExternalClient":{"minWireVersion":0,"maxWireVersion":17},"incomingInternalClient":{"minWireVersion":0,"maxWireVersion":17},"outgoing":{"minWireVersion":6,"maxWireVersion":17},"isInternalClient":true}}}
+{"t":{"$date":"2023-12-02T21:48:59.169+01:00"},"s":"I",  "c":"CONTROL",  "id":23285,   "ctx":"main","msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
+{"t":{"$date":"2023-12-02T21:48:59.170+01:00"},"s":"I",  "c":"NETWORK",  "id":4648601, "ctx":"main","msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set tcpFastOpenServer, tcpFastOpenClient, and tcpFastOpenQueueSize."}
+{"t":{"$date":"2023-12-02T21:48:59.171+01:00"},"s":"I",  "c":"REPL",     "id":5123008, "ctx":"main","msg":"Successfully registered PrimaryOnlyService","attr":{"service":"TenantMigrationDonorService","namespace":"config.tenantMigrationDonors"}}
+{"t":{"$date":"2023-12-02T21:48:59.171+01:00"},"s":"I",  "c":"REPL",     "id":5123008, "ctx":"main","msg":"Successfully registered PrimaryOnlyService","attr":{"service":"TenantMigrationRecipientService","namespace":"config.tenantMigrationRecipients"}}
+{"t":{"$date":"2023-12-02T21:48:59.171+01:00"},"s":"I",  "c":"REPL",     "id":5123008, "ctx":"main","msg":"Successfully registered PrimaryOnlyService","attr":{"service":"ShardSplitDonorService","namespace":"config.tenantSplitDonors"}}
+{"t":{"$date":"2023-12-02T21:48:59.171+01:00"},"s":"I",  "c":"CONTROL",  "id":5945603, "ctx":"main","msg":"Multi threading initialized"}
+{"t":{"$date":"2023-12-02T21:48:59.172+01:00"},"s":"I",  "c":"CONTROL",  "id":4615611, "ctx":"initandlisten","msg":"MongoDB starting","attr":{"pid":10102,"port":27017,"dbPath":"/data/db","architecture":"64-bit","host":"DESKTOP-73V33K8"}}
+{"t":{"$date":"2023-12-02T21:48:59.172+01:00"},"s":"I",  "c":"CONTROL",  "id":23403,   "ctx":"initandlisten","msg":"Build Info","attr":{"buildInfo":{"version":"6.0.12","gitVersion":"21e6e8e11a45dfbdb7ca6cf95fa8c5f859e2b118","openSSLVersion":"OpenSSL 3.0.2 15 Mar 2022","modules":[],"allocator":"tcmalloc","environment":{"distmod":"ubuntu2204","distarch":"x86_64","target_arch":"x86_64"}}}}
+{"t":{"$date":"2023-12-02T21:48:59.172+01:00"},"s":"I",  "c":"CONTROL",  "id":51765,   "ctx":"initandlisten","msg":"Operating System","attr":{"os":{"name":"Ubuntu","version":"22.04"}}}
+{"t":{"$date":"2023-12-02T21:48:59.172+01:00"},"s":"I",  "c":"CONTROL",  "id":21951,   "ctx":"initandlisten","msg":"Options set by command line","attr":{"options":{}}}
+{"t":{"$date":"2023-12-02T21:48:59.173+01:00"},"s":"E",  "c":"CONTROL",  "id":20557,   "ctx":"initandlisten","msg":"DBException in initAndListen, terminating","attr":{"error":"NonExistentPath: Data directory /data/db not found. Create the missing directory or specify another path using (1) the --dbpath command line option, or (2) by adding the 'storage.dbPath' option in the configuration file."}}
+{"t":{"$date":"2023-12-02T21:48:59.173+01:00"},"s":"I",  "c":"REPL",     "id":4784900, "ctx":"initandlisten","msg":"Stepping down the ReplicationCoordinator for shutdown","attr":{"waitTimeMillis":15000}}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"REPL",     "id":4794602, "ctx":"initandlisten","msg":"Attempting to enter quiesce mode"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"-",        "id":6371601, "ctx":"initandlisten","msg":"Shutting down the FLE Crud thread pool"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"COMMAND",  "id":4784901, "ctx":"initandlisten","msg":"Shutting down the MirrorMaestro"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"SHARDING", "id":4784902, "ctx":"initandlisten","msg":"Shutting down the WaitForMajorityService"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"NETWORK",  "id":20562,   "ctx":"initandlisten","msg":"Shutdown: going to close listening sockets"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"NETWORK",  "id":4784905, "ctx":"initandlisten","msg":"Shutting down the global connection pool"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":4784906, "ctx":"initandlisten","msg":"Shutting down the FlowControlTicketholder"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"-",        "id":20520,   "ctx":"initandlisten","msg":"Stopping further Flow Control ticket acquisitions."}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"NETWORK",  "id":4784918, "ctx":"initandlisten","msg":"Shutting down the ReplicaSetMonitor"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"SHARDING", "id":4784921, "ctx":"initandlisten","msg":"Shutting down the MigrationUtilExecutor"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"ASIO",     "id":22582,   "ctx":"MigrationUtil-TaskExecutor","msg":"Killing all outstanding egress activity."}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"COMMAND",  "id":4784923, "ctx":"initandlisten","msg":"Shutting down the ServiceEntryPoint"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":4784928, "ctx":"initandlisten","msg":"Shutting down the TTL monitor"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":6278511, "ctx":"initandlisten","msg":"Shutting down the Change Stream Expired Pre-images Remover"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":4784929, "ctx":"initandlisten","msg":"Acquiring the global lock for shutdown"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"-",        "id":4784931, "ctx":"initandlisten","msg":"Dropping the scope cache for shutdown"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":20565,   "ctx":"initandlisten","msg":"Now exiting"}
+{"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":23138,   "ctx":"initandlisten","msg":"Shutting down","attr":{"exitCode":100}}
+
+ChatGPT
+It looks like the issue is related to the specified data directory (/data/db) not being found. The error message states:
+
+bash
+Copy code
+{"t":{"$date":"2023-12-02T21:48:59.173+01:00"},"s":"E",  "c":"CONTROL",  "id":20557,   "ctx":"initandlisten","msg":"DBException in initAndListen, terminating","attr":{"error":"NonExistentPath: Data directory /data/db not found. Create the missing directory or specify another path using (1) the --dbpath command line option, or (2) by adding the 'storage.dbPath' option in the configuration file."}}
+Here are a few steps to address this issue:
+
+Create the Data Directory:
+Create the specified data directory /data/db manually. You can use the following commands:
+
+bash
+Copy code
+sudo mkdir -p /data/db
+sudo chown -R mongodb:mongodb /data/db
+Ensure that the mongodb user has the necessary permissions to read and write to this directory.
+
+Specify Data Directory:
+If you want to use a different data directory, you can specify it using the --dbpath option when starting MongoDB. For example:
+
+bash
+Copy code
+sudo mongod --dbpath /path/to/your/data/directory
+Update Configuration File:
+Alternatively, you can update the MongoDB configuration file (/etc/mongod.conf) to include the correct storage.dbPath option. Open the configuration file in a text editor and add or update the following line:
+
+javascript
+Copy code
+storage:
+  dbPath: /data/db
+Save the configuration file and then start MongoDB using:
+
+bash
+Copy code
+sudo service mongod start
+Try one of these solutions based on your preference. Once the data directory is correctly specified and exists, MongoDB should start without issues. If you encounter any further problems or have additional questions, feel free to ask.
+
+
+
+
+
+Message ChatGPT…
+
+ChatGPT can make mistakes. Consider checking important information.
+ChatGPT
