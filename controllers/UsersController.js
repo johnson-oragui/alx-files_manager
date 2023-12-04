@@ -1,13 +1,6 @@
 // Import the necessary modules and utilities
-import crypto from 'crypto';
+import sha1 from 'sha1';
 import db from '../utils/db';
-
-// Function to hash a string using SHA-1
-const cryptoPwdHash = (pwdToHash) => {
-  const sha1Hash = crypto.createHash('sha1');
-  sha1Hash.update(pwdToHash);
-  return sha1Hash.digest('hex');
-};
 
 // Define the UsersController class
 class UsersController {
@@ -34,7 +27,7 @@ class UsersController {
       }
 
       // Hash the password using SHA1
-      const hashedPassword = cryptoPwdHash(password);
+      const hashedPassword = sha1(password);
 
       // Create a new user object
       const newUser = {
