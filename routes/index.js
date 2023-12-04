@@ -4,6 +4,9 @@ import express from 'express';
 // Import the AppController from the controllers folder
 import AppController from '../controllers/AppController';
 
+// import the UsersController from controllers directory
+import UsersController from '../controllers/UsersController';
+
 // Create an instance of the Express Router
 const router = express.Router();
 
@@ -12,6 +15,9 @@ router.get('/status', AppController.getStatus);
 
 // Define the route for getting statistics
 router.get('/stats', AppController.getStats);
+
+// Define the route for adding users
+router.post('/users', UsersController.postUser);
 
 // Export the router for use in other modules
 export default router;
