@@ -5,7 +5,7 @@ import db from '../utils/db';
 // Define the UsersController class
 class UsersController {
   // Endpoint: POST /users
-  static async postUser(req, res) {
+  static async postNew(req, res) {
     try {
       // Extract email and password from the request body
       const { email, password } = req.body;

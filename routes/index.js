@@ -17,7 +17,7 @@ router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStats);
 
 // Define the route for adding users
-router.post('/users', UsersController.postUser);
+router.post('/users', UsersController.postNew);
 
 // Export the router for use in other modules
 export default router;
