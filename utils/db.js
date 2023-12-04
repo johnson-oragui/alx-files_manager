@@ -1,48 +1,68 @@
+// Import the MongoClient from the 'mongodb' library
 const { MongoClient } = require('mongodb');
 
+// Define constants for MongoDB connection
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_PORT = process.env.DB_PORT || 27017;
 const DB_DATABASE = process.env.DB_DATABSAE || 'files_manager';
+
+// Create the MongoDB connection URI based on the constants
 const URI = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
 
+// Class representing the MongoDB client
 class DBClient {
+  // Constructor for initializing the MongoDB client
   constructor() {
+    // Create a new instance of MongoClient with the connection URI
     this.client = new MongoClient(URI);
 
     this.client.connect()
       .then(() => {
-        // console.log('Connected to mongodb');
+        // Log a message when connected successfully
+        // console.log('Connected to MongoDB');
+
+        // Get a reference to the database and initialize collections
         this.db = this.client.db(DB_DATABASE);
         this.usersCollection = this.db.collection('users');
         this.filesCollection = this.db.collection('files');
       })
-      .catch((err) => console.error('error connnecting to mongodb', err));
+      .catch((err) => console.error('Error connecting to MongoDB', err));
   }
 
+  // Method to check if the MongoDB connection is alive
   isAlive() {
     return Boolean(this.db);
   }
 
+  // Method to asynchronously get the number of users in the 'users' collection
   async nbUsers() {
     try {
+      // Use the countDocuments method to get the count of documents in the 'users' collection
       const count = await this.usersCollection.countDocuments();
       return count;
     } catch (error) {
+      // Log an error message if an error occurs during the operation
       console.error('Error counting users: ', error);
       return -1;
     }
   }
 
+  // Method to asynchronously get the number of files in the 'files' collection
   async nbFiles() {
     try {
+      // Use the countDocuments method to get the count of documents in the 'files' collection
       const count = await this.filesCollection.countDocuments();
       return count;
     } catch (error) {
+      // Log an error message if an error occurs during the operation
       console.error('Error counting files: ', error);
       return -1;
     }
   }
 }
 
+// Create an instance of the DBClient class to represent the MongoDB client
 const dbclient = new DBClient();
+
+// Export the created instance for use in other parts of the application
 export default dbclient;

@@ -583,3 +583,28 @@ Save the configuration file and then start MongoDB using:
 
 sudo service mongod start
 Try one of these solutions based on your preference. Once the data directory is correctly specified and exists, MongoDB should start without issues. If you encounter any further problems or have additional questions, feel free to ask.
+
+after installing mondosh(mongodb shell)
+
+Open your WSL2 shell.
+
+Open your ~/.bashrc file:
+
+bash
+Copy code
+nano ~/.bashrc
+Add the following line at the end of the file, updating the path to the MongoDB binaries:
+
+bash
+Copy code
+export PATH=$PATH:"/mnt/c/Program Files/mongosh-2.1.0-win32-x64/bin"
+Make sure to adjust the path to the correct location if it's different.
+
+Save the file and exit the text editor.
+
+Restart your shell or run the following command to apply the changes:
+
+bash
+Copy code
+source ~/.bashrc
+After these steps, you should be able to run mongosh from any directory within your WSL2 terminal. If you encounter any issues or have further questions, feel free to ask!
