@@ -13,6 +13,8 @@ class DBClient {
       .then(() => {
         // console.log('Connected to mongodb');
         this.db = this.client.db(DB_DATABASE);
+        this.usersCollection = this.db.collection('users');
+        this.filesCollection = this.db.collection('files');
       })
       .catch((err) => console.error('error connnecting to mongodb', err));
   }
@@ -23,9 +25,7 @@ class DBClient {
 
   async nbUsers() {
     try {
-      await this.client.connect();
-      const usersCollection = this.db.collection('users');
-      const count = await usersCollection.countDocuments();
+      const count = await this.usersCollection.countDocuments();
       return count;
     } catch (error) {
       console.error('Error counting users: ', error);
@@ -35,9 +35,7 @@ class DBClient {
 
   async nbFiles() {
     try {
-      await this.client.connect();
-      const filesCollection = this.db.collection('files');
-      const count = await filesCollection.countDocuments();
+      const count = await this.filesCollection.countDocuments();
       return count;
     } catch (error) {
       console.error('Error counting files: ', error);

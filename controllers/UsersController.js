@@ -28,7 +28,7 @@ class UsersController {
       }
 
       // Check if the email already exists in the database
-      const existingUser = await db.userCollection.findOne({ email });
+      const existingUser = await db.usersCollection.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ error: 'Already exists' });
       }
@@ -45,14 +45,8 @@ class UsersController {
       // Insert the new user into the 'users' collection
       const result = await db.usersCollection.insertOne({ newUser });
 
-      // Extract relevant information for the response
-      const responseUser = {
-        id: result.insertedId,
-        email: result.ops[0].email,
-      };
-
       // Send the new user as a JSON response with a status code of 201 (Created)
-      return res.status(201).json(responseUser);
+      return res.status(201).json(result);
     } catch (error) {
       // Handle errors and send a 500 Internal Server Error response
       console.error('Error creating new user:', error);

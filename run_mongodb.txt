@@ -552,19 +552,17 @@ johnson1@DESKTOP-73V33K8:~/SPECIALISATION/alx-files_manager$ sudo mongod
 {"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":20565,   "ctx":"initandlisten","msg":"Now exiting"}
 {"t":{"$date":"2023-12-02T21:48:59.174+01:00"},"s":"I",  "c":"CONTROL",  "id":23138,   "ctx":"initandlisten","msg":"Shutting down","attr":{"exitCode":100}}
 
-ChatGPT
+
 It looks like the issue is related to the specified data directory (/data/db) not being found. The error message states:
 
-bash
-Copy code
+
 {"t":{"$date":"2023-12-02T21:48:59.173+01:00"},"s":"E",  "c":"CONTROL",  "id":20557,   "ctx":"initandlisten","msg":"DBException in initAndListen, terminating","attr":{"error":"NonExistentPath: Data directory /data/db not found. Create the missing directory or specify another path using (1) the --dbpath command line option, or (2) by adding the 'storage.dbPath' option in the configuration file."}}
 Here are a few steps to address this issue:
 
 Create the Data Directory:
 Create the specified data directory /data/db manually. You can use the following commands:
 
-bash
-Copy code
+
 sudo mkdir -p /data/db
 sudo chown -R mongodb:mongodb /data/db
 Ensure that the mongodb user has the necessary permissions to read and write to this directory.
@@ -572,28 +570,16 @@ Ensure that the mongodb user has the necessary permissions to read and write to 
 Specify Data Directory:
 If you want to use a different data directory, you can specify it using the --dbpath option when starting MongoDB. For example:
 
-bash
-Copy code
+
 sudo mongod --dbpath /path/to/your/data/directory
 Update Configuration File:
 Alternatively, you can update the MongoDB configuration file (/etc/mongod.conf) to include the correct storage.dbPath option. Open the configuration file in a text editor and add or update the following line:
 
-javascript
-Copy code
+
 storage:
   dbPath: /data/db
 Save the configuration file and then start MongoDB using:
 
-bash
-Copy code
+
 sudo service mongod start
 Try one of these solutions based on your preference. Once the data directory is correctly specified and exists, MongoDB should start without issues. If you encounter any further problems or have additional questions, feel free to ask.
-
-
-
-
-
-Message ChatGPT…
-
-ChatGPT can make mistakes. Consider checking important information.
-ChatGPT
