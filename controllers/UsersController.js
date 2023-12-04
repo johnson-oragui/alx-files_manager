@@ -39,7 +39,7 @@ class UsersController {
       const result = await db.usersCollection.insertOne(newUser);
 
       // Send the new user as a JSON response with a status code of 201 (Created)
-      return res.status(201).json(result);
+      return res.status(201).json({ id: result.insertedId, email });
     } catch (error) {
       // Handle errors and send a 500 Internal Server Error response
       console.error('Error creating new user:', error);
