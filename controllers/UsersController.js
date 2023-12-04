@@ -43,7 +43,7 @@ class UsersController {
       };
 
       // Insert the new user into the 'users' collection
-      const result = await db.usersCollection.insertOne({ newUser });
+      const result = await db.usersCollection.insertOne(newUser);
 
       // Send the new user as a JSON response with a status code of 201 (Created)
       return res.status(201).json(result);
