@@ -1,6 +1,7 @@
 // Import necessary modules and utilities
 import { v4 as uuidv4 } from 'uuid';
 import sha1 from 'sha1';
+import { ObjectId } from 'mongodb';
 import db from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -35,7 +36,7 @@ async function getUserByEmailAndPwd(email, pwd) {
 class AuthController {
   // Endpoint to sign-in the user and generate a new authentication token
   static async getConnect(req, res) {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.header('Authorization');
     try {
       // Check if Authorization header is present and starts with 'Basic '
       if (!authHeader || !authHeader.startsWith('Basic ')) {
@@ -46,7 +47,7 @@ class AuthController {
       // Decode and extract email and password from Basic Auth credentials
       const credentials = authHeader.split(' ')[1];
       const decodedCredentials = Buffer.from(credentials, 'base64').toString('utf-8');
-      const { email, password } = decodedCredentials.split(':');
+      const [email, password] = decodedCredentials.split(':');
 
       // Check if email or password is missing
       if (!email || !password) {
@@ -58,7 +59,7 @@ class AuthController {
       const sha1Hashed = sha1(password);
 
       // userExists is existingUser or a boolean(user=exists, false=not exist)
-      const userExists = getUserByEmailAndPwd(email, sha1Hashed);
+      const userExists = await getUserByEmailAndPwd(email, sha1Hashed);
 
       // If the user doesn't exist, return an unauthorized error
       if (userExists === 'false') {
@@ -75,7 +76,11 @@ class AuthController {
       // Set the user ID in Redis with the generated token for 24 hours
       const duration = 24 * 60 * 60;
       // Store user ID in Redis with the generated token for 24 hours
-      await redisClient.set(key, userExists.id, 'EX', duration);
+      const { id } = userExists._id && new ObjectId(userExists._id).toString();
+      //console.log(id);
+      if (id) {
+        await redisClient.set(key, id, 'EX', duration);
+      }
 
       // Return the token in the response
       return res.status(200).json({ token });
