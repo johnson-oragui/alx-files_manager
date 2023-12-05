@@ -48,9 +48,9 @@ class RedisClient {
   * @param {number} duration - The duration in seconds for which the key should exist.
   */
   async set(key, value, duration) {
-    const asyncSet = promisify(this.client.set).bind(this.client);
+    const asyncSetex = promisify(this.client.setex).bind(this.client);
     try {
-      await asyncSet(key, value, 'EX', duration);
+      await asyncSetex(key, duration, value);
     } catch (error) {
       console.error('Error in set method', error.message);
       throw error;
