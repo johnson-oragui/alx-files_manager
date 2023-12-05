@@ -98,7 +98,7 @@ class AuthController {
 
   // Endpoint to sign-out the user based on the token
   static async getDisconnect(req, res) {
-    const { 'X-Token': token } = req.headers;
+    const { 'x-token': token } = req.headers;
 
     try {
       // Check if the token is present
@@ -113,7 +113,8 @@ class AuthController {
       // Retrieve the user ID associated with the token from Redis
       const userId = await redisClient.get(key);
 
-      console.log(`key = ${key}, userId=${userId}`);
+      // log key and userId to console for debugging purpose
+      // console.log(`key = ${key}, userId=${userId}`);
 
       // If no user ID is found, return an unauthorized error
       if (!userId) {
