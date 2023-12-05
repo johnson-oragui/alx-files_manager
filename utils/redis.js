@@ -4,6 +4,10 @@ import { promisify } from 'util';
 class RedisClient {
   constructor() {
     this.client = redis.createClient();
+    this.asyncGet = promisify(this.client.get).bind(this.client);
+    this.asyncSetex = promisify(this.client.setex).bind(this.client);
+    this.asyncDel = promisify(this.client.del).bind(this.client);
+    this.asyncQuit = promisify(this.client.quit).bind(this.client);
 
     this.client.on('error', (err) => {
       console.log(err.message);
@@ -30,9 +34,8 @@ class RedisClient {
   *                           the specified key, or null if the key does not exist.
   */
   async get(key) {
-    const asyncGet = promisify(this.client.get).bind(this.client);
     try {
-      const value = await asyncGet(key);
+      const value = await this.asyncGet(key);
       return value;
     } catch (error) {
       console.error('Error in get method', error.message);
@@ -48,9 +51,8 @@ class RedisClient {
   * @param {number} duration - The duration in seconds for which the key should exist.
   */
   async set(key, value, duration) {
-    const asyncSetex = promisify(this.client.setex).bind(this.client);
     try {
-      await asyncSetex(key, duration, value);
+      await this.asyncSetex(key, duration, value);
     } catch (error) {
       console.error('Error in set method', error.message);
       throw error;
@@ -69,9 +71,8 @@ class RedisClient {
   * @returns {Promise<void>} A promise that resolves when the value has been deleted.
   */
   async del(key) {
-    const asyncDel = promisify(this.client.del).bind(this.client);
     try {
-      await asyncDel(key);
+      await this.asyncDel(key);
     } catch (error) {
       console.error('Error in del method', error.message);
       throw error;
@@ -84,9 +85,8 @@ class RedisClient {
   * @returns {Promise<void>} A promise that resolves when the connection has been closed.
   */
   async close() {
-    const asyncQuit = promisify(this.client.quit).bind(this.client);
     try {
-      await asyncQuit();
+      await this.asyncQuit();
     } catch (error) {
       console.error('Error with close method', error.message);
       throw error;
