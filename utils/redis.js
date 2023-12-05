@@ -54,6 +54,11 @@ class RedisClient {
     } catch (error) {
       console.error('Error in set method', error.message);
       throw error;
+    } finally {
+      // Close the connection after the set operation completes
+      setTimeout(() => {
+        this.close();
+      }, 20000);
     }
   }
 
