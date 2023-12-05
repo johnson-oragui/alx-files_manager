@@ -205,6 +205,11 @@ export default class FilesController {
       // for debugging purpose
       console.log('userId: ', userId);
 
+      if (!userId || typeof userId !== 'string' || userId.length !== 24) {
+        console.error('Invalid userId: ', userId);
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
       const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
       // for debugging purpose
       console.log('user: ', user);
@@ -218,11 +223,14 @@ export default class FilesController {
       const page = parseInt(req.query.page, 10) || 0;
       const pageSize = 20;
 
+      // for debugging purpose
+      console.log('ready for aggregation');
+      console.log('user._id: ', user._id);
       const aggregate = [
         {
           $match: {
-            userId: new ObjectId(userId),
-            parentId: new ObjectId(parentId),
+            userId: user._id,
+            parentId: parentId === '0' ? 0 : new ObjectId(parentId),
           },
         },
         {
@@ -234,6 +242,7 @@ export default class FilesController {
       ];
       const files = await dbclient.filesCollection.aggregate(aggregate).toArray();
       console.log('files: ', files);
+      return res.status(200).json(files);
     } catch (error) {
       console.error('Error in getIndex request', error);
       res.status(500).json({ error: 'Internal Server Error' });
