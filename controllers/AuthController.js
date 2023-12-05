@@ -44,9 +44,11 @@ class AuthController {
         return res.status(401).json(errMsg);
       }
 
-      // Decode and extract email and password from Basic Auth credentials
+      // split the credentials from space to seperate 'Basic' and the credentials
       const credentials = authHeader.split(' ')[1];
+      // decode the base64 from the header basic auth credentials
       const decodedCredentials = Buffer.from(credentials, 'base64').toString('utf-8');
+      // split the decoded strings to email and password
       const [email, password] = decodedCredentials.split(':');
 
       // Check if email or password is missing
@@ -58,7 +60,7 @@ class AuthController {
       // Hash the password using SHA1
       const sha1Hashed = sha1(password);
 
-      // userExists is existingUser or a boolean(user=exists, false=not exist)
+      // userExists is existing User or a boolean(user=exists, false=not exist)
       const userExists = await getUserByEmailAndPwd(email, sha1Hashed);
 
       // If the user doesn't exist, return an unauthorized error
@@ -75,13 +77,15 @@ class AuthController {
 
       // Set the user ID in Redis with the generated token for 24 hours
       const duration = 24 * 60 * 60;
-      // Store user ID in Redis with the generated token for 24 hours
-      const { id } = userExists._id && new ObjectId(userExists._id).toString();
-      //console.log(id);
-      if (id) {
-        await redisClient.set(key, id, 'EX', duration);
-      }
 
+      // make a fresh call to mogondb to retrieve the user document
+      const user = await db.usersCollection.findOne({ email });
+
+      // check if the user's ObjectId is valid
+      if (ObjectId.isValid(user._id)) {
+        // Store user ID in Redis with the generated token for 24 hours
+        await redisClient.set(key, user._id.toString(), duration);
+      }
       // Return the token in the response
       return res.status(200).json({ token });
     } catch (error) {
@@ -99,16 +103,21 @@ class AuthController {
     try {
       // Check if the token is present
       if (!token) {
+        console.log('No token found', token);
         return res.status(401).json({ error: 'Unauthorized' });
       }
+      // bcb7e6df-a282-4639-8849-2f217b102ee2
 
       // Create a key for Redis storage
       const key = `auth_${token}`;
       // Retrieve the user ID associated with the token from Redis
       const userId = await redisClient.get(key);
 
+      console.log(`key = ${key}, userId=${userId}`);
+
       // If no user ID is found, return an unauthorized error
       if (!userId) {
+        console.log('No user id', userId);
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
