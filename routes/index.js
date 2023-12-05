@@ -10,6 +10,9 @@ import UsersController from '../controllers/UsersController';
 // import the AuthController from controllers directory
 import AuthController from '../controllers/AuthController';
 
+// import FilesController from controllers directory
+import FilesController from '../controllers/FilesController';
+
 // Create an instance of the Express Router
 const router = express.Router();
 
@@ -22,11 +25,17 @@ router.get('/stats', AppController.getStats);
 // Define the route for adding users
 router.post('/users', UsersController.postNew);
 
+// Define route for Auth
 router.get('/connect', AuthController.getConnect);
 
+// Define route for dixconnection
 router.get('/disconnect', AuthController.getDisconnect);
 
+// define route for
 router.get('/users/me', UsersController.getMe);
+
+//
+router.post('/files', FilesController.postUpload);
 
 // Export the router for use in other modules
 export default router;
