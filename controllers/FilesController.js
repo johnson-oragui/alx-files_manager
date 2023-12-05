@@ -113,6 +113,11 @@ export default class FilesController {
       // logging to console for debugging
       console.log('localPath: ', localPath);
 
+      // Check if the directory exists, if not, create it
+      if (!fs.existsSync(folderStorage)) {
+        fs.mkdirSync(folderStorage, {recursive: true});
+      }
+
       // Save the file locally
       fs.writeFileSync(localPath, Buffer.from(data, 'base64'));
       // logging to console for debugging
