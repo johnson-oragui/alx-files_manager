@@ -38,7 +38,9 @@ export default class FilesController {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const { name, type, parentId, isPublic, data } = req.body;
+      const {
+        name, type, parentId, isPublic, data,
+      } = req.body;
 
       if (!name) {
         // logging to console for debugging purpose
@@ -115,7 +117,7 @@ export default class FilesController {
 
       // Check if the directory exists, if not, create it
       if (!fs.existsSync(folderStorage)) {
-        fs.mkdirSync(folderStorage, {recursive: true});
+        fs.mkdirSync(folderStorage, { recursive: true });
       }
 
       // Save the file locally
@@ -140,6 +142,101 @@ export default class FilesController {
     } catch (error) {
       console.error('Error in postUpload request', error.message);
       return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  static async getShow(req, res) {
+    try {
+      // Retrieve the user based on the token
+      const { 'x-token': token } = req.headers;
+      // for debugging purpose
+      console.log('token : ', token);
+
+      const key = `auth_${token}`;
+
+      const userId = await redisClient.get(key);
+      // for debugging purpose
+      console.log('userId: ', userId);
+
+      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+      // for debugging purpose
+      console.log('user: ', user);
+
+      if (!user) {
+        // for debugging purpose
+        console.error('no usser found: ', user);
+        res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Retrieve the file document based on the ID and user
+
+      const { id } = req.params.id;
+      // for debugging purpose
+      console.log('id: ', id);
+
+      const attributes = { _id: new ObjectId(id), userId: new ObjectId(userId) };
+
+      const fileDocument = await dbclient.filesCollection.findOne(attributes);
+      // for debugging purpose
+      console.log('fileDocument: ', fileDocument);
+
+      if (!fileDocument) {
+        // log for debugging purpose
+        console.error('fileDocument not found: ', fileDocument);
+      }
+
+      return res.status(200).json(fileDocument);
+    } catch (error) {
+      console.error('Error in getShow request', error.message);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  static async getIndex(req, res) {
+    try {
+      // Retrieve the user based on the token
+      const { 'x-token': token } = req.headers;
+      // for debugging purpose
+      console.log('token : ', token);
+
+      const key = `auth_${token}`;
+
+      const userId = await redisClient.get(key);
+      // for debugging purpose
+      console.log('userId: ', userId);
+
+      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+      // for debugging purpose
+      console.log('user: ', user);
+
+      if (!user) {
+        // for debugging purpose
+        console.error('no usser found: ', user);
+        res.status(401).json({ error: 'Unauthorized' });
+      }
+      const parentId = req.query.parentId || '0';
+      const page = parseInt(req.query.page, 10) || 0;
+      const pageSize = 20;
+
+      const aggregate = [
+        {
+          $match: {
+            userId: new ObjectId(userId),
+            parentId: new ObjectId(parentId),
+          },
+        },
+        {
+          $skip: page * pageSize,
+        },
+        {
+          $limit: pageSize,
+        },
+      ];
+      const files = await dbclient.filesCollection.aggregate(aggregate).toArray();
+      console.log('files: ', files);
+    } catch (error) {
+      console.error('Error in getIndex request', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 }
