@@ -41,5 +41,8 @@ router.get('/files/:id', FilesController.getShow);
 
 router.get('/files', FilesController.getIndex);
 
+router.put('/files/:id/publish', FilesController.putPublish);
+
+router.put('/files/:id/publish', FilesController.putUnpublish);
 // Export the router for use in other modules
 export default router;
