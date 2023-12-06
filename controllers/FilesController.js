@@ -199,26 +199,32 @@ export default class FilesController {
       // for debugging purpose
       console.log('token : ', token);
 
+      // set the key for retrieving userId from redis
       const key = `auth_${token}`;
 
+      // Retrieve userId from Redis
       const userId = await redisClient.get(key);
       // for debugging purpose
       console.log('userId: ', userId);
 
+      // Validate userId
       if (!userId || typeof userId !== 'string' || userId.length !== 24) {
         console.error('Invalid userId: ', userId);
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
+      // Retrieve user from MongoDB
       const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
       // for debugging purpose
       console.log('user: ', user);
 
+      // Check if user exists
       if (!user) {
         // for debugging purpose
         console.error('no usser found: ', user);
         res.status(401).json({ error: 'Unauthorized' });
       }
+      // Set default values for parentId, page, and pageSize
       const parentId = req.query.parentId || '0';
       const page = parseInt(req.query.page, 10) || 0;
       const pageSize = 20;
@@ -226,6 +232,8 @@ export default class FilesController {
       // for debugging purpose
       console.log('ready for aggregation');
       console.log('user._id: ', user._id);
+
+      // Define aggregation pipeline
       const aggregate = [
         {
           $match: {
@@ -240,11 +248,110 @@ export default class FilesController {
           $limit: pageSize,
         },
       ];
+
+      // Execute aggregation
       const files = await dbclient.filesCollection.aggregate(aggregate).toArray();
+      // for debugging purpose
       console.log('files: ', files);
+
+      // return the files with status code 200
       return res.status(200).json(files);
     } catch (error) {
       console.error('Error in getIndex request', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  static async putPublish(req, res) {
+    try {
+      // Retrieve the user based on the token
+      const { 'x-token': token } = req.headers;
+
+      const key = `auth_${token}`;
+
+      const userId = await redisClient.get(key);
+
+      // for debugging purpose
+      console.log('userId: ', userId);
+
+      // Find user in MongoDB based on userId
+      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+
+      // Check if user exists
+      if (!user) {
+        console.error('User not found', user);
+        return res.status(401).json({ error: 'Not found' });
+      }
+
+      // Define the query to fetch the fileDocument
+      const toFetch = { userId: new ObjectId(user._id) };
+
+      // Find the fileDocument in the filesCollection
+      const fileDocument = await dbclient.filesCollection.findOne(toFetch);
+      console.log('fileDocument: ', fileDocument);
+
+      // Check if fileDocument exists
+      if (!fileDocument) {
+        console.log('File document not found', fileDocument);
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      // Save the updated fileDocument
+      await dbclient.filesCollection.updateOne(toFetch, { $set: { isPublic: true } });
+
+      // Update the isPublic field to true
+      fileDocument.isPublic = true;
+
+      return res.status(200).json(fileDocument);
+    } catch (error) {
+      console.error('Error in putPublish method');
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  static async putUnpublish(req, res) {
+    try {
+      // Retrieve the user based on the token
+      const { 'x-token': token } = req.headers;
+
+      const key = `auth_${token}`;
+
+      const userId = await redisClient.get(key);
+
+      // for debugging purpose
+      console.log('userId: ', userId);
+
+      // Find user in MongoDB based on userId
+      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+
+      // Check if user exists
+      if (!user) {
+        console.error('User not found', user);
+        return res.status(401).json({ error: 'Not found' });
+      }
+
+      // Define the query to fetch the fileDocument
+      const toFetch = { userId: new ObjectId(user._id) };
+
+      // Find the fileDocument in the filesCollection
+      const fileDocument = await dbclient.filesCollection.findOne(toFetch);
+      console.log('fileDocument: ', fileDocument);
+
+      // Check if fileDocument exists
+      if (!fileDocument) {
+        console.log('File document not found', fileDocument);
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      // Save the updated fileDocument
+      await dbclient.filesCollection.updateOne(toFetch, { $set: { isPublic: false } });
+
+      // Update the isPublic field to true
+      fileDocument.isPublic = false;
+
+      return res.status(200).json(fileDocument);
+    } catch (error) {
+      console.error('Error in putPublish method');
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }

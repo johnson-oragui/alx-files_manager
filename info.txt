@@ -1,0 +1,14 @@
+curl 0.0.0.0:5000/users -XPOST -H "Content-Type: application/json" -d '{ "email": "johnson@gmail.com", "password": "123456" }' ; echo 
+""
+{"id":"657089f1a8143fa8fdcd3be0","email":"johnson@gmail.com"}
+
+Basic am9obnNvbmdAZ21haWwuY29tOjEyMzQ1Ng==
+
+curl 0.0.0.0:5000/connect -H "Authorization: Basic am9obnNvbmdAZ21haWwuY29tOjEyMzQ1Ng==" ; echo ""
+
+encode to base64 via the command line
+
+echo -n "johnson@gmail.com:123456" | base64
+
+am9obnNvbkBnbWFpbC5jb206MTIzNDU2
+{"token":"20d882ad-754b-49c7-949f-e2f8a2bca838"}

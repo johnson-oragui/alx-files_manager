@@ -9,16 +9,15 @@ import redisClient from '../utils/redis';
 async function getUserByEmailAndPwd(email, pwd) {
   try {
     // Attempt to find a user with the given email in the database
-    const existingUser = await db.usersCollection.findOne({ email });
+    const existingUser = await db.usersCollection.findOne({ email, password: pwd });
+    // for debugging
+    console.log('existingUser', existingUser);
+    console.log('email', email);
+    console.log('pwd', pwd);
 
-    // If a user with the given email is found
+    // If a user with the given email and hashed password is found
     if (existingUser) {
-      const existingUserPwd = existingUser.password;
-
-      // If the password matches the stored password, return the user
-      if (pwd === existingUserPwd) {
-        return existingUser;
-      }
+      return existingUser;
     }
 
     // If no user is found or the password doesn't match, return false
@@ -37,9 +36,13 @@ class AuthController {
   // Endpoint to sign-in the user and generate a new authentication token
   static async getConnect(req, res) {
     const authHeader = req.header('Authorization');
+    // for debugging
+    console.log('authHeader', authHeader);
     try {
       // Check if Authorization header is present and starts with 'Basic '
       if (!authHeader || !authHeader.startsWith('Basic ')) {
+        // for debugging
+        console.log('authHeader', authHeader);
         const errMsg = { error: 'Unauthorized' };
         return res.status(401).json(errMsg);
       }
@@ -50,6 +53,8 @@ class AuthController {
       const decodedCredentials = Buffer.from(credentials, 'base64').toString('utf-8');
       // split the decoded strings to email and password
       const [email, password] = decodedCredentials.split(':');
+      // for debugging
+      console.log('email', email, 'password', password);
 
       // Check if email or password is missing
       if (!email || !password) {
@@ -62,9 +67,13 @@ class AuthController {
 
       // userExists is existing User or a boolean(user=exists, false=not exist)
       const userExists = await getUserByEmailAndPwd(email, sha1Hashed);
+      // for debugging
+      console.log('userExists', userExists);
 
       // If the user doesn't exist, return an unauthorized error
-      if (userExists === 'false') {
+      if (userExists === false) {
+        // for debugging
+        console.log('userExists', userExists);
         const errMsg = { error: 'Unauthorized' };
         return res.status(400).json(errMsg);
       }
@@ -80,9 +89,11 @@ class AuthController {
 
       // make a fresh call to mogondb to retrieve the user document
       const user = await db.usersCollection.findOne({ email });
+      // for debugging
+      console.log('user', user);
 
       // check if the user's ObjectId is valid
-      if (ObjectId.isValid(user._id)) {
+      if (user && ObjectId.isValid(user._id)) {
         // Store user ID in Redis with the generated token for 24 hours
         await redisClient.set(key, user._id.toString(), duration);
       }
