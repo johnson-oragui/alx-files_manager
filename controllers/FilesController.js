@@ -63,7 +63,7 @@ export default class FilesController {
       }
 
       if (parentId) {
-        const parentFile = await dbclient.filesCollection.findOne({ _id: parentId });
+        const parentFile = await dbclient.filesCollection.findOne({ _id: new ObjectId(parentId) });
 
         if (!parentFile) {
           // logging to console for debugging purpose
