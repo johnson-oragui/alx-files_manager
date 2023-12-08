@@ -5,6 +5,7 @@ import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
 import dbclient from '../utils/db';
 import redisClient from '../utils/redis';
+import fileQueue from '../worker';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -138,6 +139,9 @@ export default class FilesController {
       newFile._id = dbResult.insertedId;
       // logging to console for debugging
       console.log('newFile._id: ', newFile._id);
+
+      // Enqueue job to generate thumbnails
+      await fileQueue.add({ fileId: newFile._id, userId: newFile.userId });
 
       return res.status(201).json(newFile);
     } catch (error) {
