@@ -1,8 +1,9 @@
 // Import the necessary modules and utilities
 import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
-import db from '../utils/db';
+import dbclient from '../utils/db';
 import redisClient from '../utils/redis';
+import userQueue from '../worker';
 
 // Define the UsersController class
 class UsersController {
@@ -23,7 +24,7 @@ class UsersController {
       }
 
       // Check if the email already exists in the database
-      const existingUser = await db.usersCollection.findOne({ email });
+      const existingUser = await dbclient.usersCollection.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ error: 'Already exist' });
       }
@@ -38,7 +39,10 @@ class UsersController {
       };
 
       // Insert the new user into the 'users' collection
-      const result = await db.usersCollection.insertOne(newUser);
+      const result = await dbclient.usersCollection.insertOne(newUser);
+
+      // Enqueue job to send Welcome email
+      await userQueue.add({ userId: result.insertedId });
 
       // Send the new user as a JSON response with a status code of 201 (Created)
       return res.status(201).json({ id: result.insertedId, email });
@@ -78,7 +82,7 @@ class UsersController {
       }
 
       // Attempt to find a user in the 'usersCollection' with the given userId
-      const user = await db.usersCollection.findOne({ _id: new ObjectId(userId) });
+      const user = await dbclient.usersCollection.findOne({ _id: new ObjectId(userId) });
       // log user to console for debuggging purpose
       // console.log(`user: ${user._id}`);
 

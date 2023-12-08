@@ -1,40 +1,34 @@
-// worker.js
+import Queue from 'bull';
+import { ObjectId } from 'mongodb';
+import dbclient from './utils/db';
 
-import Bull from 'bull';
-import imageThumbnail from 'image-thumbnail';
-import dbclient from '../utils/db';
-import path from 'path';
+// Create a Bull queue for userQueue
+const userQueue = new Queue('userQueue', {
+  redis: {
+    host: 'localhost',
+    port: 6379,
+  },
+});
 
-const fileQueue = new Bull('fileQueue');
+// Process the userQueue
+userQueue.process(async (job) => {
+  const { userId } = job.data;
 
-fileQueue.process(async (job) => {
-  const { fileId, userId } = job.data;
-
-  if (!fileId) {
-    throw new Error('Missing fileId');
-  }
-
+  // Check if userId is present in the job
   if (!userId) {
     throw new Error('Missing userId');
   }
 
-  const fileDocument = await dbclient.filesCollection.findOne({ _id: fileId, userId });
+  // Find the user document in the 'usersCollection' based on userId
+  const user = await dbclient.usersCollection.findOne({ _id: new ObjectId(userId) });
 
-  if (!fileDocument) {
-    throw new Error('File not found');
+  // If no document is found in DB based on the userId, raise an error User not found
+  if (!user) {
+    throw new Error('User not found');
   }
 
-  const originalPath = fileDocument.localPath;
-
-  // Generate thumbnails
-  const sizes = [500, 250, 100];
-  const promises = sizes.map(async (size) => {
-    const thumbnailPath = `${originalPath}_${size}`;
-    const thumbnail = await imageThumbnail(originalPath, { width: size });
-    await imageThumbnail.outputFile(thumbnail, thumbnailPath);
-  });
-
-  await Promise.all(promises);
+  // Print in the console: Welcome <email>!
+  console.log(`Welcome ${user.email}!`);
 });
 
-export default fileQueue;
+export default userQueue;
