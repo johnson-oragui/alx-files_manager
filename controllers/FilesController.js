@@ -388,7 +388,10 @@ export default class FilesController {
 
       res.setHeader('Content-Type', mimeType);
 
-      return res.status(200).send(file);
+      // Read the file content and send it as the response
+      const data = fs.readFileSync(file.localPath);
+
+      return res.status(200).send(data);
     } catch (error) {
       console.error('Error in getFile method', error.message);
       res.status(500).json({ error: 'Internal Server Error' });
