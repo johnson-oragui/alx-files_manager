@@ -10,7 +10,7 @@ class RedisClient {
     this.asyncQuit = promisify(this.client.quit).bind(this.client);
 
     this.client.on('error', (err) => {
-      console.log(err.message);
+      console.log('erro in connection custom', err.message);
     });
   }
 
@@ -20,10 +20,7 @@ class RedisClient {
   * @returns {boolean} True if the client is alive, false otherwise.
   */
   isAlive() {
-    if (this.client.ping) {
-      return true;
-    }
-    return false;
+    return this.client.connected && this.client.ready;
   }
 
   /**

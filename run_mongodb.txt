@@ -547,7 +547,8 @@ sudo chown -R mongodb:mongodb /data/db
 Ensure that the mongodb user has the necessary permissions to read and write to this directory.
 
 Specify Data Directory:
-If you want to use a different data directory, you can specify it using the --dbpath option when starting MongoDB. For example:
+If you want to use a different data directory, you can specify it using the --dbpath
+option when starting MongoDB. For example:
 
 
 sudo mongod --dbpath /path/to/your/data/directory
@@ -561,7 +562,8 @@ Save the configuration file and then start MongoDB using:
 
 
 sudo service mongod start
-Try one of these solutions based on your preference. Once the data directory is correctly specified and exists, MongoDB should start without issues. If you encounter any further problems or have additional questions, feel free to ask.
+Try one of these solutions based on your preference. Once the data directory is
+correctly specified and exists, MongoDB should start without issues. If you encounter any further problems or have additional questions, feel free to ask.
 
 after installing mondosh(mongodb shell)
 
@@ -572,7 +574,8 @@ Open your ~/.bashrc file:
 bash
 Copy code
 nano ~/.bashrc
-Add the following line at the end of the file, updating the path to the MongoDB binaries:
+Add the following line at the end of the file, updating the path to the MongoDB
+binaries:
 
 bash
 Copy code
@@ -586,4 +589,5 @@ Restart your shell or run the following command to apply the changes:
 bash
 Copy code
 source ~/.bashrc
-After these steps, you should be able to run mongosh from any directory within your WSL2 terminal. If you encounter any issues or have further questions, feel free to ask!
+After these steps, you should be able to run mongosh from any directory within your
+WSL2 terminal. If you encounter any issues or have further questions, feel free to ask!

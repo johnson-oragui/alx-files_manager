@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
 import dbclient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -355,4 +356,70 @@ export default class FilesController {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+
+  static async getFile(req, res) {
+    const fileId = req.params.id;
+
+    try {
+      const file = await dbclient.filesCollection.findOne({ _id: new ObjectId(fileId) });
+      // Check if the file exists
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      // Check if the file is public or the user is authenticated and the owner
+      if (!file.isPublic && (!req.user || req.user.id !== file.userId)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      // Check if the file is a folder
+      if (file.type === 'folder') {
+        return res.status(400).json({ error: "A folder doesn't have content" });
+      }
+
+      // Check if the file is locally present (replace with your own logic)
+      if (!file.localPath) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      // Get MIME-type based on the file name
+      const mimeType = mime.lookup(file.name);
+
+      // Set response headers
+
+      res.setHeader('Content-Type', mimeType);
+
+      return res.status(200).send(file);
+    } catch (error) {
+      console.error('Error in getFile method', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

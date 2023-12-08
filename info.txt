@@ -12,3 +12,5 @@ echo -n "johnson@gmail.com:123456" | base64
 
 am9obnNvbkBnbWFpbC5jb206MTIzNDU2
 {"token":"20d882ad-754b-49c7-949f-e2f8a2bca838"}
+
+python image_upload.py image.png 20d882ad-754b-49c7-949f-e2f8a2bca838 65709b214802f5ddd23d3cb4
