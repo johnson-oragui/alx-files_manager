@@ -1,7 +1,6 @@
 // Import the necessary modules and utilities
 import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
-import dbclient from '../utils/db';
 import redisClient from '../utils/redis';
 import userQueue from '../worker';
 import DBCrud from '../utils/db_manager';
