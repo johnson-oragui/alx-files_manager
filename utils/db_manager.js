@@ -20,6 +20,45 @@ class DBCrud {
       return false;
     }
   }
+
+  static async addNewFile(newFileData) {
+    try {
+      return dbclient.filesCollection.insertOne(newFileData);
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }
+
+  static async findFile(file) {
+    try {
+      console.log('findfile', file);
+      return await dbclient.filesCollection.findOne(file);
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }
+
+  static async fileUpdate(queryData, fileData) {
+    try {
+      console.log('findfile', fileData);
+      return await dbclient.filesCollection.updateOne(queryData, fileData);
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }
+
+  static async filesAggregate(aggregate) {
+    try {
+      console.log('findfile', aggregate);
+      return await dbclient.filesCollection.aggregate(aggregate);
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }
 }
 
 export default DBCrud;
