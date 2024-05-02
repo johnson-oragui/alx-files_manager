@@ -38,7 +38,11 @@ describe('will GET /connect', () => {
 
     // Connect to MongoDB
     const client = await MongoClient.connect(`mongodb://${dbInfo.host}:${dbInfo.port}/${dbInfo.database}`);
-    testClientDb = client.db(dbInfo.database);
+    if (client) {
+        testClientDb = client.db(dbInfo.database);
+    } else {
+        console.error('Couldn\'t connect to db');
+    }
 
     // Clear users collection
     await testClientDb.collection('users').deleteMany({});
@@ -69,7 +73,7 @@ describe('will GET /connect', () => {
     // Remove all Redis keys after each test
     await fctRemoveAllRedisKeys();
     // Close MongoDB connection
-    await testClientDb.close();
+    if (testClientDb) await testClientDb.close();
     // Quit Redis client
     testRedisClient.quit();
   });
