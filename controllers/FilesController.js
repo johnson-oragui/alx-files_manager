@@ -91,7 +91,7 @@ export default class FilesController {
         userId: new ObjectId(user._id),
         name,
         type,
-        isPublic,
+        isPublic: isPublic || false,
         parentId: parentId || 0,
         localPath: '',
 
@@ -145,7 +145,7 @@ export default class FilesController {
 
       return res.status(201).json(newFile);
     } catch (error) {
-      console.error('Error in postUpload request', error.message);
+      console.error('Error in postUpload request: ', error.message);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
