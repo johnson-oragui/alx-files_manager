@@ -2,14 +2,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
-import db from '../utils/db';
+import DBCrud from '../utils/db_manager';
 import redisClient from '../utils/redis';
 
 // function to return existing user if they exist, returns false it not exists
 async function getUserByEmailAndPwd(email, pwd) {
   try {
     // Attempt to find a user with the given email in the database
-    const existingUser = await db.usersCollection.findOne({ email, password: pwd });
+    const existingUser = await DBCrud.findUser({ email, password: pwd });
     // for debugging
     console.log('existingUser', existingUser);
     console.log('email', email);
@@ -75,7 +75,7 @@ class AuthController {
         // for debugging
         console.log('userExists', userExists);
         const errMsg = { error: 'Unauthorized' };
-        return res.status(400).json(errMsg);
+        return res.status(401).json(errMsg);
       }
 
       // Generate a new authentication token
@@ -88,7 +88,7 @@ class AuthController {
       const duration = 24 * 60 * 60;
 
       // make a fresh call to mogondb to retrieve the user document
-      const user = await db.usersCollection.findOne({ email });
+      const user = await DBCrud.findUser({ email });
       // for debugging
       console.log('user', user);
 
