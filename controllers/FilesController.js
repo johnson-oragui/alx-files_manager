@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
-import dbclient from '../utils/db';
+import DBCrud from '../utils/db_manager';
 import redisClient from '../utils/redis';
 import fileQueue from '../worker';
 
@@ -30,7 +30,7 @@ export default class FilesController {
       console.log('UserId: ', userId);
 
       // Retrieve the user based on the userId
-      const user = await dbclient.usersCollection.findOne({ _id: new ObjectId(userId) });
+      const user = await DBCrud.findUser({ _id: new ObjectId(userId) });
       // logging to console for debugging purpose
       console.log('User: ', user);
 
@@ -46,7 +46,7 @@ export default class FilesController {
 
       if (!name) {
         // logging to console for debugging purpose
-        console.error('Name not found: ', name);
+        console.error('Missing name: ', name);
         return res.status(400).json({ error: 'Missing name' });
       }
 
@@ -54,18 +54,18 @@ export default class FilesController {
 
       if (!type || !acceptedTypes.includes(type)) {
         // logging to console for debugging purpose
-        console.error('Type not found: ', type, 'or not in accepted types');
+        console.error('Missing type: ', type, 'or not in accepted types');
         return res.status(400).json({ error: 'Missing type' });
       }
 
-      if (type !== 'folder' && !data) {
+      if (!data && type !== 'folder') {
         // logging to console for debugging purpose
         console.error('Data not found: ', data, 'or type is not folder');
         return res.status(400).json({ error: 'Missing data' });
       }
 
       if (parentId) {
-        const parentFile = await dbclient.filesCollection.findOne({ _id: new ObjectId(parentId) });
+        const parentFile = await DBCrud.addNewFile({ _id: new ObjectId(parentId) });
 
         if (!parentFile) {
           // logging to console for debugging purpose
@@ -91,7 +91,7 @@ export default class FilesController {
         userId: new ObjectId(user._id),
         name,
         type,
-        isPublic: isPublic || false,
+        isPublic,
         parentId: parentId || 0,
         localPath: '',
 
@@ -99,7 +99,7 @@ export default class FilesController {
 
       // If the type is folder, add the new file document in the DB
       if (type === 'folder') {
-        const dbResult = await dbclient.filesCollection.insertOne(newFile);
+        const dbResult = await DBCrud.addNewFile(newFile);
         // logging to console for debugging
         console.log('dbResult: ', dbResult);
         console.log('NewFile id: ', newFile._id);
@@ -133,7 +133,7 @@ export default class FilesController {
       console.log('newFile.localPath" ', newFile.localPath);
 
       // Add the new file document in the collection files
-      const dbResult = await dbclient.filesCollection.insertOne(newFile);
+      const dbResult = await DBCrud.addNewFile(newFile);
       // logging to console for debugging
       console.log('dbResult for localPath', dbResult);
       newFile._id = dbResult.insertedId;
@@ -163,7 +163,7 @@ export default class FilesController {
       // for debugging purpose
       console.log('userId: ', userId);
 
-      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+      const user = await DBCrud.findUser(new ObjectId(userId));
       // for debugging purpose
       console.log('user: ', user);
 
@@ -181,7 +181,7 @@ export default class FilesController {
 
       const attributes = { _id: new ObjectId(id), userId: new ObjectId(userId) };
 
-      const fileDocument = await dbclient.filesCollection.findOne(attributes);
+      const fileDocument = await DBCrud.findFile(attributes);
       // for debugging purpose
       console.log('fileDocument: ', fileDocument);
 
@@ -219,7 +219,7 @@ export default class FilesController {
       }
 
       // Retrieve user from MongoDB
-      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+      const user = await DBCrud.findUser(new ObjectId(userId));
       // for debugging purpose
       console.log('user: ', user);
 
@@ -255,7 +255,7 @@ export default class FilesController {
       ];
 
       // Execute aggregation
-      const files = await dbclient.filesCollection.aggregate(aggregate).toArray();
+      const files = await DBCrud.filesAggregate(aggregate).toArray();
       // for debugging purpose
       console.log('files: ', files);
 
@@ -263,7 +263,7 @@ export default class FilesController {
       return res.status(200).json(files);
     } catch (error) {
       console.error('Error in getIndex request', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
@@ -280,7 +280,7 @@ export default class FilesController {
       console.log('userId: ', userId);
 
       // Find user in MongoDB based on userId
-      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+      const user = await DBCrud.findUser(new ObjectId(userId));
 
       // Check if user exists
       if (!user) {
@@ -292,7 +292,7 @@ export default class FilesController {
       const toFetch = { userId: new ObjectId(user._id) };
 
       // Find the fileDocument in the filesCollection
-      const fileDocument = await dbclient.filesCollection.findOne(toFetch);
+      const fileDocument = await DBCrud.findFile(toFetch);
       console.log('fileDocument: ', fileDocument);
 
       // Check if fileDocument exists
@@ -302,7 +302,7 @@ export default class FilesController {
       }
 
       // Save the updated fileDocument
-      await dbclient.filesCollection.updateOne(toFetch, { $set: { isPublic: true } });
+      await DBCrud.fileUpdate(toFetch, { $set: { isPublic: true } });
 
       // Update the isPublic field to true
       fileDocument.isPublic = true;
@@ -310,7 +310,7 @@ export default class FilesController {
       return res.status(200).json(fileDocument);
     } catch (error) {
       console.error('Error in putPublish method');
-      res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
@@ -327,7 +327,7 @@ export default class FilesController {
       console.log('userId: ', userId);
 
       // Find user in MongoDB based on userId
-      const user = await dbclient.usersCollection.findOne(new ObjectId(userId));
+      const user = await DBCrud.findUser(new ObjectId(userId));
 
       // Check if user exists
       if (!user) {
@@ -339,7 +339,7 @@ export default class FilesController {
       const toFetch = { userId: new ObjectId(user._id) };
 
       // Find the fileDocument in the filesCollection
-      const fileDocument = await dbclient.filesCollection.findOne(toFetch);
+      const fileDocument = await DBCrud.findFile(toFetch);
       console.log('fileDocument: ', fileDocument);
 
       // Check if fileDocument exists
@@ -349,7 +349,7 @@ export default class FilesController {
       }
 
       // Save the updated fileDocument
-      await dbclient.filesCollection.updateOne(toFetch, { $set: { isPublic: false } });
+      await DBCrud.fileUpdate(toFetch, { $set: { isPublic: false } });
 
       // Update the isPublic field to true
       fileDocument.isPublic = false;
@@ -357,7 +357,7 @@ export default class FilesController {
       return res.status(200).json(fileDocument);
     } catch (error) {
       console.error('Error in putPublish method');
-      res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
@@ -365,7 +365,7 @@ export default class FilesController {
     const fileId = req.params.id;
 
     try {
-      const file = await dbclient.filesCollection.findOne({ _id: new ObjectId(fileId) });
+      const file = await DBCrud.findFile({ _id: new ObjectId(fileId) });
       // Check if the file exists
       if (!file) {
         return res.status(404).json({ error: 'File not found' });
@@ -398,35 +398,7 @@ export default class FilesController {
       return res.status(200).send(data);
     } catch (error) {
       console.error('Error in getFile method', error.message);
-      res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
