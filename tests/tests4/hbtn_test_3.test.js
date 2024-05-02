@@ -1,91 +1,94 @@
 import chai from 'chai';
 import chaiHttp from 'chai-http';
-
-import MongoClient from 'mongodb';
+import { MongoClient } from 'mongodb';
 import { promisify } from 'util';
 import redis from 'redis';
 import sha1 from 'sha1';
 
 chai.use(chaiHttp);
 
-describe('GET /connect', () => {
-    let testClientDb;
-    let testRedisClient;
-    let redisDelAsync;
-    let redisGetAsync;
-    let redisSetAsync;
-    let redisKeysAsync;
+describe('will GET /connect', () => {
+  let testClientDb;
+  let testRedisClient;
+  let redisDelAsync;
+  let redisGetAsync;
+  let redisSetAsync;
+  let redisKeysAsync;
 
-    let initialUser = null;
-    let initialUserPwd = null;
-    let initialUserId = null;
+  let initialUser = null;
+  let initialUserPwd = null;
+  let initialUserId = null;
 
-    const fctRandomString = () => {
-        return Math.random().toString(36).substring(2, 15);
+  const fctRandomString = () => Math.random().toString(36).substring(2, 15);
+
+  // Function to remove all keys from Redis with pattern 'auth_*'
+  const fctRemoveAllRedisKeys = async () => {
+    const keys = await redisKeysAsync('auth_*');
+    await Promise.all(keys.map(async (key) => {
+      await redisDelAsync(key);
+    }));
+  };
+
+  beforeEach(async () => {
+    const dbInfo = {
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || '27017',
+      database: process.env.DB_DATABASE || 'files_manager',
+    };
+
+    // Connect to MongoDB
+    const client = await MongoClient.connect(`mongodb://${dbInfo.host}:${dbInfo.port}/${dbInfo.database}`);
+    testClientDb = client.db(dbInfo.database);
+
+    // Clear users collection
+    await testClientDb.collection('users').deleteMany({});
+
+    // Add a test user
+    initialUserPwd = fctRandomString();
+    initialUser = {
+      email: `${fctRandomString()}@me.com`,
+      password: sha1(initialUserPwd),
+    };
+    const { ops } = await testClientDb.collection('users').insertOne(initialUser);
+    if (ops && ops.length > 0) {
+      initialUserId = ops[0]._id.toString();
     }
-    const fctRemoveAllRedisKeys = async () => {
-        const keys = await redisKeysAsync('auth_*');
-        keys.forEach(async (key) => {
-            await redisDelAsync(key);
-        });
-    }
 
-    beforeEach(() => {
-        const dbInfo = {
-            host: process.env.DB_HOST || 'localhost',
-            port: process.env.DB_PORT || '27017',
-            database: process.env.DB_DATABASE || 'files_manager'
-        };
-        return new Promise((resolve) => {
-            MongoClient.connect(`mongodb://${dbInfo.host}:${dbInfo.port}/${dbInfo.database}`, async (err, client) => {
-                testClientDb = client.db(dbInfo.database);
-            
-                await testClientDb.collection('users').deleteMany({})
+    // Initialize Redis client and promisified functions
+    testRedisClient = redis.createClient();
+    redisDelAsync = promisify(testRedisClient.del).bind(testRedisClient);
+    redisGetAsync = promisify(testRedisClient.get).bind(testRedisClient);
+    redisSetAsync = promisify(testRedisClient.set).bind(testRedisClient);
+    redisKeysAsync = promisify(testRedisClient.keys).bind(testRedisClient);
 
-                // Add 1 user
-                initialUserPwd = fctRandomString();
-                initialUser = { 
-                    email: `${fctRandomString()}@me.com`,
-                    password: sha1(initialUserPwd)
-                }
-                const createdDocs = await testClientDb.collection('users').insertOne(initialUser);
-                if (createdDocs && createdDocs.ops.length > 0) {
-                    initialUserId = createdDocs.ops[0]._id.toString();
-                }
+    // Remove all existing Redis keys before each test
+    await fctRemoveAllRedisKeys();
+  });
 
-                testRedisClient = redis.createClient();
-                redisDelAsync = promisify(testRedisClient.del).bind(testRedisClient);
-                redisGetAsync = promisify(testRedisClient.get).bind(testRedisClient);
-                redisSetAsync = promisify(testRedisClient.set).bind(testRedisClient);
-                redisKeysAsync = promisify(testRedisClient.keys).bind(testRedisClient);
-                testRedisClient.on('connect', async () => {
-                    fctRemoveAllRedisKeys();
-                    resolve();
-                });
-            }); 
-        });
-    });
-        
-    afterEach(() => {
-        fctRemoveAllRedisKeys();
-    });
+  afterEach(async () => {
+    // Remove all Redis keys after each test
+    await fctRemoveAllRedisKeys();
+    // Close MongoDB connection
+    await testClientDb.close();
+    // Quit Redis client
+    testRedisClient.quit();
+  });
 
-    it('GET /connect with correct user email and password', (done) => {
-        const basicAuth = `Basic ${Buffer.from(`${initialUser.email}:${initialUserPwd}`, 'binary').toString('base64')}`;
-        chai.request('http://localhost:5000')
-            .get('/connect')
-            .set('Authorization', basicAuth)
-            .end(async (err, res) => {
-                chai.expect(err).to.be.null;
-                chai.expect(res).to.have.status(200);
-                const resUserToken = res.body.token;
-                chai.expect(resUserToken).to.not.be.null;
-                
-                const redisToken = await redisGetAsync(`auth_${resUserToken}`)
-                chai.expect(redisToken).to.not.be.null;
-                chai.expect(initialUserId).to.equal(redisToken);
-                
-                done();
-            });
-    }).timeout(30000);
+  it('will GET /connect with unknown user email', async () => {
+    // Construct Basic Auth header with fake user email
+    const basicAuth = `Basic ${Buffer.from(`fake_${initialUser.email}:${initialUserPwd}`).toString('base64')}`;
+
+    // Make GET request to /connect endpoint
+    const res = await chai.request('http://localhost:5000')
+      .get('/connect')
+      .set('Authorization', basicAuth);
+
+    // Assert response status code and error message
+    chai.expect(res).to.have.status(401);
+    chai.expect(res.body.error).to.equal('Unauthorized');
+
+    // Assert that no Redis keys exist with pattern 'auth_*'
+    const authKeys = await redisKeysAsync('auth_*');
+    chai.expect(authKeys).to.be.an('array').that.is.empty;
+  }).timeout(30000);
 });
