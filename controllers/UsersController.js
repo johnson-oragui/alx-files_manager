@@ -64,7 +64,7 @@ class UsersController {
     try {
       // Check if the token is missing
       if (!token) {
-        return res.status(401).json({ error: 'Unauthorised' });
+        return res.status(401).json({ error: 'Unauthorized' });
       }
 
       // Construct the key used to store the user ID in Redis
