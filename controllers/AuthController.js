@@ -5,50 +5,25 @@ import { ObjectId } from 'mongodb';
 import DBCrud from '../utils/db_manager';
 import redisClient from '../utils/redis';
 
-// function to return existing user if they exist, returns false it not exists
-async function getUserByEmailAndPwd(email, pwd) {
-  try {
-    // Attempt to find a user with the given email in the database
-    const existingUser = await DBCrud.findUser({ email, password: pwd });
-    // for debugging
-    console.log('existingUser', existingUser);
-    console.log('email', email);
-    console.log('pwd', pwd);
-
-    // If a user with the given email and hashed password is found
-    if (existingUser) {
-      return existingUser;
-    }
-
-    // If no user is found or the password doesn't match, return false
-    return false;
-  } catch (error) {
-    // Log an error message if an error occurs during the database operation
-    console.log('Error in compare', error.message);
-
-    // Return false to indicate an error or no user found
-    return false;
-  }
-}
 
 // Define the AuthController class
 class AuthController {
   // Endpoint to sign-in the user and generate a new authentication token
   static async getConnect(req, res) {
-    const authHeader = req.header('Authorization');
+    const { authorization } = req.headers;
     // for debugging
-    console.log('authHeader', authHeader);
+    console.log('authorization', authorization);
     try {
       // Check if Authorization header is present and starts with 'Basic '
-      if (!authHeader || !authHeader.startsWith('Basic ')) {
+      if (!authorization || !authorization.startsWith('Basic ')) {
         // for debugging
-        console.log('authHeader', authHeader);
+        console.log('authorization', authorization);
         const errMsg = { error: 'Unauthorized' };
         return res.status(401).json(errMsg);
       }
 
       // split the credentials from space to seperate 'Basic' and the credentials
-      const credentials = authHeader.split(' ')[1];
+      const credentials = authorization.split(' ')[1];
       // decode the base64 from the header basic auth credentials
       const decodedCredentials = Buffer.from(credentials, 'base64').toString('utf-8');
       // split the decoded strings to email and password
@@ -65,13 +40,13 @@ class AuthController {
       // Hash the password using SHA1
       const sha1Hashed = sha1(password);
 
-      // userExists is existing User or a boolean(user=exists, false=not exist)
-      const userExists = await getUserByEmailAndPwd(email, sha1Hashed);
+      // Attempt to find a user with the given email in the database
+      const userExists = await DBCrud.findUser({ email, sha1Hashed });
       // for debugging
       console.log('userExists', userExists);
 
       // If the user doesn't exist, return an unauthorized error
-      if (userExists === false) {
+      if (!userExists) {
         // for debugging
         console.log('userExists', userExists);
         const errMsg = { error: 'Unauthorized' };
@@ -80,23 +55,13 @@ class AuthController {
 
       // Generate a new authentication token
       const token = uuidv4();
-
       // Create a key for Redis storage
       const key = `auth_${token}`;
-
       // Set the user ID in Redis with the generated token for 24 hours
       const duration = 24 * 60 * 60;
 
-      // make a fresh call to mogondb to retrieve the user document
-      const user = await DBCrud.findUser({ email });
-      // for debugging
-      console.log('user', user);
-
-      // check if the user's ObjectId is valid
-      if (user && ObjectId.isValid(user._id)) {
-        // Store user ID in Redis with the generated token for 24 hours
-        await redisClient.set(key, user._id.toString(), duration);
-      }
+      // Store user ID in Redis with the generated token for 24 hours
+      await redisClient.set(key, userExists._id.toString(), duration);
       // Return the token in the response
       return res.status(200).json({ token });
     } catch (error) {
