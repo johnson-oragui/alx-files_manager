@@ -1,37 +1,50 @@
 // Import the MongoClient from the 'mongodb' library
 const { MongoClient } = require('mongodb');
 
-// Define constants for MongoDB connection
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_PORT = process.env.DB_PORT || 27017;
-const DB_DATABASE = process.env.DB_DATABSAE || 'files_manager';
-
-// Create the MongoDB connection URI based on the constants
-const URI = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
-
 // Class representing the MongoDB client
 class DBClient {
   // Constructor for initializing the MongoDB client
   constructor() {
+    // Define constants for MongoDB connection
+    const DB_HOST = process.env.DB_HOST || 'localhost';
+    const DB_PORT = process.env.DB_PORT || 27017;
+    const DB_DATABASE = process.env.DB_DATABSAE || 'files_manager';
+
+    // Create the MongoDB connection URI based on the constants
+    const URI = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
     // Create a new instance of MongoClient with the connection URI
-    this.client = new MongoClient(URI);
 
-    this.client.connect()
-      .then(() => {
-        // Log a message when connected successfully
-        // console.log('Connected to MongoDB');
+    this.client = null;
+    this.isConnected = false;
+    this.db = null;
+    this.usersCollection = null;
+    this.filesCollection = null;
+    this.connect(URI)
+      .then(() => {})
+      .catch((err) => console.error('error connecting to db', err));
+  }
 
-        // Get a reference to the database and initialize collections
-        this.db = this.client.db(DB_DATABASE);
-        this.usersCollection = this.db.collection('users');
-        this.filesCollection = this.db.collection('files');
-      })
-      .catch((err) => console.error('Error connecting to MongoDB', err));
+  async connect(url) {
+    try {
+      this.client = await MongoClient.connect(url);
+      this.isConnected = true;
+      // Get a reference to the database and initialize collections
+      this.db = this.client.db();
+      this.usersCollection = this.db.collection('users');
+      this.filesCollection = this.db.collection('files');
+      return null;
+    } catch (err) {
+      console.error('Error connecting to MongoDB', err);
+      // console.error('Connection error, retrying in 2 seconds...');
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await this.connect(url); // Retry connection
+      return false;
+    }
   }
 
   // Method to check if the MongoDB connection is alive
   isAlive() {
-    return Boolean(this.db);
+    return this.isConnected;
   }
 
   // Method to asynchronously get the number of users in the 'users' collection
@@ -65,4 +78,4 @@ class DBClient {
 const dbclient = new DBClient();
 
 // Export the created instance for use in other parts of the application
-export default dbclient;
+module.exports = dbclient;
