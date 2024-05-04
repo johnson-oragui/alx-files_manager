@@ -12,7 +12,7 @@ class AuthController {
   static async getConnect(req, res) {
     const { authorization } = req.headers;
     // for debugging
-    console.log('authorization', authorization);
+    console.log('authorization: ', authorization);
     try {
       // Check if Authorization header is present and starts with 'Basic '
       if (!authorization || !authorization.startsWith('Basic ')) {
@@ -29,7 +29,7 @@ class AuthController {
       // split the decoded strings to email and password
       const [email, password] = decodedCredentials.split(':');
       // for debugging
-      console.log('email', email, 'password', password);
+      console.log('email: ', email, 'password: ', password);
 
       // Check if email or password is missing
       if (!email || !password) {
@@ -41,7 +41,7 @@ class AuthController {
       const sha1Hashed = sha1(password);
 
       // Attempt to find a user with the given email in the database
-      const userExists = await DBCrud.findUser({ email, sha1Hashed });
+      const userExists = await DBCrud.findUser({ email, password: sha1Hashed });
       // for debugging
       console.log('userExists', userExists);
 
