@@ -87,7 +87,7 @@ class UsersController {
       // console.log(`user: ${user._id}`);
 
       // Check if the user is not found in the database
-      if (user === false) {
+      if (!user) {
         // added for debugging purpose
         console.error('Error fetching user by Id');
         return res.status(401).json({ error: 'Unauthorized' });
