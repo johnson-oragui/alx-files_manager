@@ -89,7 +89,7 @@ export default class FilesController {
 
       // Create a new file document
       const newFile = {
-        userId: ObjectId(user._id),
+        userId: new ObjectId(user._id),
         name,
         type,
         isPublic: isPublic || false,
@@ -108,16 +108,22 @@ export default class FilesController {
 
       // For type=file|image, store the file locally
       const folderStorage = process.env.FOLDER_PATH || '/tmp/files_manager';
+      const fullpath = path.join(process.cwd(), folderStorage);
       // logging to console for debugging
-      console.log('folderStorage: ', folderStorage);
+      console.log('folderStorage: ', fullpath);
 
-      const localPath = path.join(folderStorage, `${uuidv4()}`);
+      const localPath = path.join(fullpath, `${uuidv4()}`);
       // logging to console for debugging
       console.log('localPath: ', localPath);
+      console.log(process.cwd());
 
-      // Check if the directory exists, if not, create it
-      if (!fs.exists(folderStorage)) {
-        await fs.mkdir(folderStorage, { recursive: true });
+      try {
+        // Check if the directory exists, if not, create it
+        await fs.access(fullpath);
+        console.log('directory exists');
+      } catch (err) {
+        console.log('creating folder...');
+        await fs.mkdir(fullpath, { recursive: true });
       }
 
       // Save the file locally
