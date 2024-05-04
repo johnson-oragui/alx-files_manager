@@ -1,11 +1,11 @@
-import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
-import fs from 'fs';
-import mime from 'mime-types';
-import { ObjectId } from 'mongodb';
-import DBCrud from '../utils/db_manager';
-import redisClient from '../utils/redis';
-import { fileQueue } from '../worker';
+const { v4: uuidv4 } = require('uuid');
+const path = require('path');
+const fs = require('fs').promises;
+const mime = require('mime-types');
+const { ObjectId } = require('mongodb');
+const DBCrud = require('../utils/db_manager');
+const redisClient = require('../utils/redis');
+const { fileQueue } = require('../worker');
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -13,11 +13,9 @@ export default class FilesController {
       // retrieve the token from header
       const { 'x-token': token } = req.headers;
 
-      if (!token) {
-        // logging to console for debugging purpose
-        console.error('Error getting token: ', token);
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
+      const {
+        name, type, isPublic, data,
+      } = req.body;
 
       // construct a key to get userId from redisClient
       const key = `auth_${token}`;
@@ -40,9 +38,11 @@ export default class FilesController {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const {
-        name, type, parentId, isPublic, data,
-      } = req.body;
+      if (!token) {
+        // logging to console for debugging purpose
+        console.error('Error getting token: ', token);
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
       if (!name) {
         // logging to console for debugging purpose
@@ -64,8 +64,9 @@ export default class FilesController {
         return res.status(400).json({ error: 'Missing data' });
       }
 
-      if (parentId) {
-        const parentFile = await DBCrud.addNewFile({ _id: new ObjectId(parentId) });
+      const parentId = req.body.parentId || 0;
+      if (parentId !== 0) {
+        const parentFile = await DBCrud.findFile({ _id: new ObjectId(parentId) });
 
         if (!parentFile) {
           // logging to console for debugging purpose
@@ -88,23 +89,20 @@ export default class FilesController {
 
       // Create a new file document
       const newFile = {
-        userId: new ObjectId(user._id),
+        userId: ObjectId(user._id),
         name,
         type,
         isPublic: isPublic || false,
-        parentId: parentId || 0,
-        localPath: '',
-
+        parentId,
       };
 
       // If the type is folder, add the new file document in the DB
       if (type === 'folder') {
         const dbResult = await DBCrud.addNewFile(newFile);
         // logging to console for debugging
-        console.log('dbResult: ', dbResult);
-        console.log('NewFile id: ', newFile._id);
+        console.log('new folder file added: ', dbResult);
         // update the newFile id with the inserted id
-        newFile._id = dbResult.insertedId;
+        newFile.id = dbResult.insertedId;
         return res.status(201).json(newFile);
       }
 
@@ -118,12 +116,12 @@ export default class FilesController {
       console.log('localPath: ', localPath);
 
       // Check if the directory exists, if not, create it
-      if (!fs.existsSync(folderStorage)) {
-        fs.mkdirSync(folderStorage, { recursive: true });
+      if (!fs.exists(folderStorage)) {
+        await fs.mkdir(folderStorage, { recursive: true });
       }
 
       // Save the file locally
-      fs.writeFileSync(localPath, Buffer.from(data, 'base64'));
+      await fs.writeFile(localPath, Buffer.from(data, 'base64'));
       // logging to console for debugging
       console.log('written data to file');
 
@@ -136,12 +134,12 @@ export default class FilesController {
       const dbResult = await DBCrud.addNewFile(newFile);
       // logging to console for debugging
       console.log('dbResult for localPath', dbResult);
-      newFile._id = dbResult.insertedId;
+      newFile.id = dbResult.insertedId;
       // logging to console for debugging
-      console.log('newFile._id: ', newFile._id);
+      console.log('newFile._id: ', newFile.id);
 
       // Enqueue job to generate thumbnails
-      await fileQueue.add({ fileId: newFile._id, userId: newFile.userId });
+      await fileQueue.add({ fileId: newFile.id, userId: newFile.userId });
 
       return res.status(201).json(newFile);
     } catch (error) {
