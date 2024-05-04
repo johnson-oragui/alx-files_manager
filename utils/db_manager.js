@@ -1,5 +1,5 @@
-// const dbclient = require('./db');
-import dbclient from './db';
+const dbclient = require('./db');
+// import dbclient from './db';
 
 class DBCrud {
   static async findUser(user) {
@@ -26,9 +26,15 @@ class DBCrud {
   static async addNewFile(newFileData) {
     try {
       const newFile = await dbclient.filesCollection.insertOne(newFileData);
+      console.log('Added file:', newFile);
       return newFile;
     } catch (err) {
-      console.error('error in DBCrud.addNewFile method: ', err);
+      if (err.code === 11000) {
+        // Duplicate key error, handle accordingly
+        console.error('Duplicate key error in DBCrud.addNewFile method:', err);
+      } else {
+        console.error('Error in DBCrud.addNewFile method:', err);
+      }
       return false;
     }
   }
@@ -67,4 +73,4 @@ class DBCrud {
   }
 }
 
-export default DBCrud;
+module.exports = DBCrud;
