@@ -1,10 +1,11 @@
-import Queue from 'bull';
-import sharp from 'sharp'; // Image processing library for resizing/formatting
-import { ObjectId } from 'mongodb';
-import dbclient from './utils/db';
+const Queue = require('bull');
+// Image processing library for resizing/formatting
+const sharp = require('sharp');
+const { ObjectId } = require('mongodb');
+const dbclient = require('./utils/db');
 
 // Create a Bull queue for userQueue
-export const userQueue = new Queue('userQueue', {
+const userQueue = new Queue('userQueue', {
   redis: {
     host: 'localhost',
     port: 6379,
@@ -33,7 +34,7 @@ userQueue.process(async (job) => {
 });
 
 // Create a Bull queue for fileQueue
-export const fileQueue = new Queue('fileQueue', {
+const fileQueue = new Queue('fileQueue', {
   redis: {
     host: 'localhost',
     port: 6379,
@@ -82,3 +83,5 @@ fileQueue.process(async (job) => {
     console.error(`Error generating thumbnail for file ${fileId}: ${error.message}`);
   }
 });
+
+module.exports = { userQueue, fileQueue };
