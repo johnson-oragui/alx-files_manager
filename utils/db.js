@@ -1,5 +1,5 @@
 // Import the MongoClient from the 'mongodb' library
-const { MongoClient } = require('mongodb');
+import { MongoClient } from 'mongodb';
 
 // Class representing the MongoDB client
 class DBClient {
@@ -17,8 +17,8 @@ class DBClient {
     this.client = null;
     this.isConnected = false;
     this.db = null;
-    this.usersCollection = null;
-    this.filesCollection = null;
+    // this.usersCollection = null;
+    // this.filesCollection = null;
     this.connect(URI)
       .then(() => {})
       .catch((err) => console.error('error connecting to db', err));
@@ -78,4 +78,4 @@ class DBClient {
 const dbclient = new DBClient();
 
 // Export the created instance for use in other parts of the application
-module.exports = dbclient;
+export default dbclient;

@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-hooks */
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 import { MongoClient } from 'mongodb';
@@ -39,9 +40,9 @@ describe('will GET /connect', () => {
     // Connect to MongoDB
     const client = await MongoClient.connect(`mongodb://${dbInfo.host}:${dbInfo.port}/${dbInfo.database}`);
     if (client) {
-        testClientDb = client.db(dbInfo.database);
+      testClientDb = client.db(dbInfo.database);
     } else {
-        console.error('Couldn\'t connect to db');
+      console.error('Couldn\'t connect to db');
     }
 
     // Clear users collection
@@ -53,9 +54,11 @@ describe('will GET /connect', () => {
       email: `${fctRandomString()}@me.com`,
       password: sha1(initialUserPwd),
     };
-    const { ops } = await testClientDb.collection('users').insertOne(initialUser);
-    if (ops && ops.length > 0) {
-      initialUserId = ops[0]._id.toString();
+    const { insertedId } = await testClientDb.collection('users').insertOne(initialUser);
+    console.log('ops: ', insertedId);
+    if (insertedId) {
+      console.log('initialUserId: ', insertedId.toString());
+      initialUserId = insertedId.toString();
     }
 
     // Initialize Redis client and promisified functions
@@ -72,27 +75,26 @@ describe('will GET /connect', () => {
   afterEach(async () => {
     // Remove all Redis keys after each test
     await fctRemoveAllRedisKeys();
-    // Close MongoDB connection
-    if (testClientDb) await testClientDb.close();
     // Quit Redis client
     testRedisClient.quit();
   });
 
-  it('will GET /connect with unknown user email', async () => {
-    // Construct Basic Auth header with fake user email
-    const basicAuth = `Basic ${Buffer.from(`fake_${initialUser.email}:${initialUserPwd}`).toString('base64')}`;
-
-    // Make GET request to /connect endpoint
-    const res = await chai.request('http://localhost:5000')
+  it('gET /connect with correct user email and password', () => new Promise((done) => {
+    const basicAuth = `Basic ${Buffer.from(`${initialUser.email}:${initialUserPwd}`, 'binary').toString('base64')}`;
+    chai.request('http://localhost:5000')
       .get('/connect')
-      .set('Authorization', basicAuth);
+      .set('Authorization', basicAuth)
+      .end(async (err, res) => {
+        chai.expect(err).to.be.null;
+        chai.expect(res).to.have.status(200);
+        const resUserToken = res.body.token;
+        chai.expect(resUserToken).to.not.be.null;
 
-    // Assert response status code and error message
-    chai.expect(res).to.have.status(401);
-    chai.expect(res.body.error).to.equal('Unauthorized');
+        const redisToken = await redisGetAsync(`auth_${resUserToken}`);
+        chai.expect(redisToken).to.not.be.null;
+        chai.expect(initialUserId).to.equal(redisToken);
 
-    // Assert that no Redis keys exist with pattern 'auth_*'
-    const authKeys = await redisKeysAsync('auth_*');
-    chai.expect(authKeys).to.be.an('array').that.is.empty;
-  }).timeout(30000);
+        done();
+      });
+  })).timeout(30000);
 });

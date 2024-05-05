@@ -1,5 +1,4 @@
-const dbclient = require('./db');
-// import dbclient from './db';
+import dbclient from './db';
 
 class DBCrud {
   static async findUser(user) {
@@ -73,4 +72,4 @@ class DBCrud {
   }
 }
 
-module.exports = DBCrud;
+export default DBCrud;

@@ -1,11 +1,11 @@
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const fs = require('fs').promises;
-const mime = require('mime-types');
-const { ObjectId } = require('mongodb');
-const DBCrud = require('../utils/db_manager');
-const redisClient = require('../utils/redis');
-const { fileQueue } = require('../worker');
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import fs from 'fs';
+import mime from 'mime-types';
+import { ObjectId } from 'mongodb';
+import DBCrud from '../utils/db_manager';
+import redisClient from '../utils/redis';
+import { fileQueue } from '../worker';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -125,15 +125,15 @@ class FilesController {
 
       try {
         // Check if the directory exists, if not, create it
-        await fs.access(fullpath);
+        await fs.promises.access(fullpath);
         console.log('directory exists');
       } catch (err) {
         console.log('creating folder...');
-        await fs.mkdir(fullpath, { recursive: true });
+        await fs.promises.mkdir(fullpath, { recursive: true });
       }
 
       // Save the file locally
-      await fs.writeFile(localPath, Buffer.from(data, 'base64'));
+      await fs.promises.writeFile(localPath, Buffer.from(data, 'base64'));
       // logging to console for debugging
       console.log('written data to file');
 
@@ -413,4 +413,4 @@ class FilesController {
   }
 }
 
-module.exports = FilesController;
+export default FilesController;

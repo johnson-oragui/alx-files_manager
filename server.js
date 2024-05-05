@@ -1,7 +1,6 @@
 // Import the Express framework
-const express = require('express');
-// Import the defined routes from the routes folder
-const routes = require('./routes/index');
+import express from 'express';
+import routes from './routes/index';
 
 // Create an instance of the Express application
 const app = express();

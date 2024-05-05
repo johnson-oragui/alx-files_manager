@@ -10,6 +10,7 @@ import { MongoClient } from 'mongodb';
 import { promisify } from 'util';
 import redis from 'redis';
 import sha1 from 'sha1';
+import { stat } from 'fs';
 
 chai.use(chaiHttp);
 
@@ -80,8 +81,10 @@ describe('will GET /users/me', () => {
       .end(async (err, res) => {
         chai.expect(err).to.be.null;
         chai.expect(res).to.have.status(401);
+        console.log('status: ', res.statusCode);
 
         const resError = res.body.error;
+        console.log('resError: ', resError);
         chai.expect(resError).to.equal('Unauthorized');
 
         done();
