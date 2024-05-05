@@ -26,7 +26,7 @@ class DBClient {
 
   async connect(url) {
     try {
-      this.client = await MongoClient.connect(url);
+      this.client = await MongoClient.connect(url, { useUnifiedTopology: true });
       this.isConnected = true;
       // Get a reference to the database and initialize collections
       this.db = this.client.db();
