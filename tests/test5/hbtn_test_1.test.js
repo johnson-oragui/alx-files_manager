@@ -27,10 +27,10 @@ describe('POST /files', () => {
     }
     const fctRemoveAllRedisKeys = async () => {
         const keys = await redisKeysAsync('auth_*');
-        keys.forEach(async (key) => {
-            await redisDelAsync(key);
-        });
-    }
+        await Promise.all(keys.map(async (key) => {
+          await redisDelAsync(key);
+        }));
+      };
 
     beforeEach(() => {
         const dbInfo = {

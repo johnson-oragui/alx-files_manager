@@ -1,3 +1,6 @@
+/* eslint-disable jest/expect-expect */
+/* eslint-disable no-unused-expressions */
+/* eslint-disable jest/no-hooks */
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 
@@ -60,7 +63,7 @@ describe('will GET /users/me', () => {
     redisGetAsync = promisify(testRedisClient.get).bind(testRedisClient);
     redisSetAsync = promisify(testRedisClient.set).bind(testRedisClient);
     redisKeysAsync = promisify(testRedisClient.keys).bind(testRedisClient);
-    fctRemoveAllRedisKeys();
+    await fctRemoveAllRedisKeys();
     // Set token for this user
     initialUserToken = uuidv4();
 
