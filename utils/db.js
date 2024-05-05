@@ -11,22 +11,22 @@ class DBClient {
     const DB_DATABASE = process.env.DB_DATABSAE || 'files_manager';
 
     // Create the MongoDB connection URI based on the constants
-    const URI = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
+    this.URI = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
     // Create a new instance of MongoClient with the connection URI
 
     this.client = null;
     this.isConnected = false;
     this.db = null;
-    // this.usersCollection = null;
-    // this.filesCollection = null;
-    this.connect(URI)
+    this.usersCollection = null;
+    this.filesCollection = null;
+    this.connect()
       .then(() => {})
       .catch((err) => console.error('error connecting to db', err));
   }
 
-  async connect(url) {
+  async connect() {
     try {
-      this.client = await MongoClient.connect(url, { useUnifiedTopology: true });
+      this.client = await MongoClient.connect(this.URI, { useUnifiedTopology: true });
       this.isConnected = true;
       // Get a reference to the database and initialize collections
       this.db = this.client.db();
@@ -35,9 +35,6 @@ class DBClient {
       return null;
     } catch (err) {
       console.error('Error connecting to MongoDB', err);
-      // console.error('Connection error, retrying in 2 seconds...');
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      await this.connect(url); // Retry connection
       return false;
     }
   }
