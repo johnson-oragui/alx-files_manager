@@ -2,7 +2,7 @@
 const sha1 = require('sha1');
 const { ObjectId } = require('mongodb');
 const redisClient = require('../utils/redis');
-const userQueue = require('../worker');
+const { userQueue } = require('../worker');
 const DBCrud = require('../utils/db_manager');
 
 // Define the UsersController class
@@ -59,7 +59,7 @@ class UsersController {
     // Extract the token from the request headers
     const { 'x-token': token } = req.headers;
     // log token to console for debugging purpose
-    // console.log(token);
+    console.log('x-token: ', token);
 
     try {
       // Check if the token is missing
