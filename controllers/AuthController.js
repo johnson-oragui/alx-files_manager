@@ -1,10 +1,8 @@
 // Import necessary modules and utilities
-import { v4 as uuidv4 } from 'uuid';
-import sha1 from 'sha1';
-import { ObjectId } from 'mongodb';
-import DBCrud from '../utils/db_manager';
-import redisClient from '../utils/redis';
-
+const { v4: uuidv4 } = require('uuid');
+const sha1 = require('sha1');
+const DBCrud = require('../utils/db_manager');
+const redisClient = require('../utils/redis');
 
 // Define the AuthController class
 class AuthController {

@@ -1,9 +1,9 @@
 // Import the necessary modules and utilities
-import sha1 from 'sha1';
-import { ObjectId } from 'mongodb';
-import redisClient from '../utils/redis';
-import userQueue from '../worker';
-import DBCrud from '../utils/db_manager';
+const sha1 = require('sha1');
+const { ObjectId } = require('mongodb');
+const redisClient = require('../utils/redis');
+const userQueue = require('../worker');
+const DBCrud = require('../utils/db_manager');
 
 // Define the UsersController class
 class UsersController {
@@ -104,4 +104,4 @@ class UsersController {
 }
 
 // Export the UsersController class for use in other modules
-export default UsersController;
+module.exports = UsersController;

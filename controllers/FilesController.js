@@ -7,11 +7,18 @@ const DBCrud = require('../utils/db_manager');
 const redisClient = require('../utils/redis');
 const { fileQueue } = require('../worker');
 
-export default class FilesController {
+class FilesController {
   static async postUpload(req, res) {
     try {
       // retrieve the token from header
       const { 'x-token': token } = req.headers;
+      console.log('token: ', token);
+
+      if (!token) {
+        // logging to console for debugging purpose
+        console.error('Error getting token: ', token);
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
       const {
         name, type, isPublic, data,
@@ -26,6 +33,11 @@ export default class FilesController {
       const userId = await redisClient.get(key);
       // logging to console for debugging purpose
       console.log('UserId: ', userId);
+      if (!userId) {
+        // logging to console for debugging purpose
+        console.error('Error finding userId', userId);
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
       // Retrieve the user based on the userId
       const user = await DBCrud.findUser({ _id: new ObjectId(userId) });
@@ -35,12 +47,6 @@ export default class FilesController {
       if (!user) {
         // logging to console for debugging purpose
         console.error('Error finding user', user);
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      if (!token) {
-        // logging to console for debugging purpose
-        console.error('Error getting token: ', token);
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
@@ -406,3 +412,5 @@ export default class FilesController {
     }
   }
 }
+
+module.exports = FilesController;

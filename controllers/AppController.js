@@ -1,6 +1,6 @@
 // Import the Redis and MongoDB utilities
-import redis from '../utils/redis';
-import db from '../utils/db';
+const redis = require('../utils/redis');
+const db = require('../utils/db');
 
 // Define the AppController class
 class AppController {
@@ -50,4 +50,4 @@ class AppController {
 }
 
 // Export the AppController class for use in other modules
-export default AppController;
+module.exports = AppController;
