@@ -56,50 +56,15 @@ class UsersController {
   // Endpoint: GET /users/me
   // Retrieve the user information based on the provided token
   static async getMe(req, res) {
-    // Extract the token from the request headers
-    const { 'x-token': token } = req.headers;
-    // log token to console for debugging purpose
-    console.log('x-token: ', token);
+    const token = req.header('X-Token');
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    const userId = await redisClient.get(`auth_${token}`);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    try {
-      // Check if the token is missing
-      if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
 
-      // Construct the key used to store the user ID in Redis
-      const key = `auth_${token}`;
-      // Retrieve the user ID from Redis
-      const userId = await redisClient.get(key);
-      // log userId to console for debuggging purpose
-      // console.log(`UserId: ${userId}`);
-
-      // Check if the user ID is not found in Redis
-      if (!userId) {
-        // added for debugging purpose
-        // console.error('Error fetching userId');
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      // Attempt to find a user in the 'usersCollection' with the given userId
-      const user = await DBCrud.findUser({ _id: new ObjectId(userId) });
-      // log user to console for debuggging purpose
-      // console.log(`user: ${user._id}`);
-
-      // Check if the user is not found in the database
-      if (!user) {
-        // added for debugging purpose
-        console.error('Error fetching user by Id');
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      // Respond with the user's email and ID if everything is successful
-      return res.status(200).json({ id: user._id, email: user.email });
-    } catch (error) {
-      // Handle any unexpected errors and respond with a 500 Internal Server Error
-      console.error('Error in getMe', error.messsage);
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
+    const user = await DBCrud.findUser({ _id: new ObjectId(userId) });
+    if (user) return res.status(200).json({ id: userId, email: user.email });
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 }
 
