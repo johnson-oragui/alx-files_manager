@@ -1,17 +1,13 @@
 // Import the Express framework
-import express from 'express';
-
-// Import the AppController from the controllers folder
-import AppController from '../controllers/AppController';
-
+const express = require('express');
 // import the UsersController from controllers directory
-import UsersController from '../controllers/UsersController';
-
+const UsersController = require('../controllers/UsersController');
 // import the AuthController from controllers directory
-import AuthController from '../controllers/AuthController';
-
+const AuthController = require('../controllers/AuthController');
 // import FilesController from controllers directory
-import FilesController from '../controllers/FilesController';
+const FilesController = require('../controllers/FilesController');
+// Import the AppController from the controllers folder
+const AppController = require('../controllers/AppController');
 
 // Create an instance of the Express Router
 const router = express.Router();
@@ -47,4 +43,4 @@ router.put('/files/:id/publish', FilesController.putPublish);
 
 router.put('/files/:id/publish', FilesController.putUnpublish);
 // Export the router for use in other modules
-export default router;
+module.exports = router;
