@@ -3,6 +3,8 @@ import dbclient from './db';
 class DBCrud {
   static async findUser(user) {
     try {
+      // Wait until the connection is established before using collections
+      await dbclient.connect();
       const foundUser = await dbclient.usersCollection.findOne(user);
       console.log('from DBCrud.findUser', foundUser);
       return foundUser;
@@ -14,6 +16,8 @@ class DBCrud {
 
   static async createNewUser(newUserData) {
     try {
+      // Wait until the connection is established before using collections
+      await dbclient.connect();
       const newUser = await dbclient.usersCollection.insertOne(newUserData);
       return newUser;
     } catch (err) {
@@ -24,6 +28,8 @@ class DBCrud {
 
   static async addNewFile(newFileData) {
     try {
+      // Wait until the connection is established before using collections
+      await dbclient.connect();
       const newFile = await dbclient.filesCollection.insertOne(newFileData);
       console.log('Added file:', newFile);
       return newFile;
@@ -40,6 +46,8 @@ class DBCrud {
 
   static async findFile(file) {
     try {
+      // Wait until the connection is established before using collections
+      await dbclient.connect();
       const foundFile = await dbclient.filesCollection.findOne(file);
       console.log('findfile', foundFile);
       return foundFile;
@@ -51,6 +59,8 @@ class DBCrud {
 
   static async fileUpdate(queryData, fileData) {
     try {
+      // Wait until the connection is established before using collections
+      await dbclient.connect();
       const updatedFiled = await dbclient.filesCollection.updateOne(queryData, fileData);
       console.log('updatefile', updatedFiled);
       return updatedFiled;
@@ -62,6 +72,8 @@ class DBCrud {
 
   static async filesAggregate(aggregate) {
     try {
+      // Wait until the connection is established before using collections
+      await dbclient.connect();
       const aggFile = await dbclient.filesCollection.aggregate(aggregate);
       console.log('findfile', aggFile);
       return aggFile;
