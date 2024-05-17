@@ -1,20 +1,20 @@
+/* eslint-disable jest/expect-expect */
 import chai from 'chai';
 
 import chaiHttp from 'chai-http';
 
 chai.use(chaiHttp);
 
-describe('GET /status', () => {
-    it('GET /status exists', (done) => {
-        chai.request('http://localhost:5000')
-            .get('/status')
-            .end((err, res) => {
-                chai.expect(err).to.be.null;
-                chai.expect(res).to.have.status(200);
-                const bodyJson = res.body;
-                chai.expect(bodyJson.redis).to.be.true;
-                chai.expect(bodyJson.db).to.be.true;
-                done();
-            });
-    }).timeout(30000);
+describe('gET /status', () => {
+  it('gET /status exists', () => new Promise((done) => {
+    chai.request('http://localhost:5000')
+      .get('/status')
+      .end((err, res) => {
+        chai.assert.isTrue(err === null);
+        chai.assert.isTrue(res.statusCode === 200);
+        chai.assert.isTrue(res.body.db === true);
+        chai.assert.isTrue(res.body.redis === true);
+        done();
+      });
+  })).timeout(30000);
 });
