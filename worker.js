@@ -2,7 +2,7 @@ import Queue from 'bull';
 import imageThumb from 'image-thumbnail';
 import { ObjectId } from 'mongodb';
 import fs from 'fs';
-import dbClient from './utils/db';
+import DBCrud from './utils/db_manager';
 
 const fileQueue = new Queue('fileQueue');
 
@@ -12,7 +12,7 @@ fileQueue.process(async (job) => {
     if (!fileId) throw new Error('Missing fileId');
     if (!userId) throw new Error('Missing userId');
 
-    const file = await dbClient.dbClient.collection('files').findOne({ _id: ObjectId(fileId), userId: ObjectId(userId) });
+    const file = await DBCrud.findFile({ _id: ObjectId(fileId), userId: ObjectId(userId) });
     if (!file) throw new Error('File not found');
     const path = file.localPath;
     fs.writeFileSync(`${path}_500`, await imageThumb(path, { width: 500 }));
@@ -31,7 +31,7 @@ userQueue.process(async (job) => {
   try {
     const { userId } = job.data;
     if (!userId) throw new Error('Missing userId');
-    const user = await dbClient.dbClient.collection('users').findOne({ _id: ObjectId(userId) });
+    const user = await DBCrud.findUser({ _id: ObjectId(userId) });
     if (!user) throw new Error('User not found');
 
     console.log(`Welcome ${user.email}!`);
