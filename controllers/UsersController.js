@@ -56,14 +56,31 @@ class UsersController {
   // Endpoint: GET /users/me
   // Retrieve the user information based on the provided token
   static async getMe(req, res) {
-    const token = req.header('X-Token');
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
-    const userId = await redisClient.get(`auth_${token}`);
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      // retrieve token from request
+      const token = req.header('X-Token');
 
-    const user = await DBCrud.findUser({ _id: new ObjectId(userId) });
-    if (user) return res.status(200).json({ id: userId, email: user.email });
-    return res.status(401).json({ error: 'Unauthorized' });
+      // if no token in headers, return unauthorized
+      if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+      // retrieve userId stored in redis using token from request
+      const userId = await redisClient.get(`auth_${token}`);
+
+      // if no userId found associated with the token from request, return unauthorized
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+      // use the userId to retrieve user details from database
+      const user = await DBCrud.findUser({ _id: new ObjectId(userId) });
+
+      // if user not found, return unauthorized
+      if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+      // return user email and id if found
+      return res.status(200).json({ id: userId, email: user.email });
+    } catch (error) {
+      console.error('error in getMe method: ', error.message);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
   }
 }
 
