@@ -68,14 +68,27 @@ class AuthController {
   }
 
   static async getDisconnect(req, res) {
-    const token = req.header('X-Token');
-    const userId = await redisClient.get(`auth_${token}`);
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    try {
+      // retrieve x-token from request
+      const token = req.header('X-Token');
+      // console.log(token);
 
-    await redisClient.del(`auth_${token}`);
-    return res.status(204).end();
+      // retrieve userId stored in redis
+      const userId = await redisClient.get(`auth_${token}`);
+      // console.log('userId: ', userId);
+
+      // return unauthorized if userId not found
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+      // delete the key from redis signifying user logged out
+      await redisClient.del(`auth_${token}`);
+
+      // return nothing after successful log out
+      return res.status(204).json();
+    } catch (error) {
+      console.error('error in getDisconnect method: ', error.message);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 }
 
