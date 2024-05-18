@@ -1,159 +1,157 @@
-import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
-import fs from 'fs';
-import mime from 'mime-types';
-import { ObjectId } from 'mongodb';
-import DBCrud from '../utils/db_manager';
-import redisClient from '../utils/redis';
-import { fileQueue } from '../worker';
+import fs from 'fs'; // Import fs for file system operations
+import mime from 'mime-types'; // Import mime-types for handling MIME types
+import { ObjectId } from 'mongodb'; // Import ObjectId for MongoDB object IDs
+import DBCrud from '../utils/db_manager'; // Import DBCrud for database operations
+import redisClient from '../utils/redis'; // Import redisClient for Redis operations
+import { fileQueue } from '../worker'; // Import fileQueue for background job processing
+import { saveFileLocally, pathToBeRetruned } from '../utils/saveFileLocally';
 
 export default class FilesController {
   static async postUpload(req, res) {
     try {
-      // retrieve the token from header
-      const { 'x-token': token } = req.headers;
-      console.log('token: ', token);
+      const {
+        name, // Filename
+        type, // Type of the file (folder, file, image)
+        parentId = 0, // Parent ID, default is 0 (root)
+        isPublic = false, // Public flag, default is false
+        data, // Base64 encoded file data
+      } = req.body;
 
+      // retrieve the token from header
+      const token = req.header('x-token');
+
+      // return unauthorized if token is missing
       if (!token) {
         // logging to console for debugging purpose
         console.error('Error getting token: ', token);
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const {
-        name, type, isPublic, data,
-      } = req.body;
-
       // construct a key to get userId from redisClient
       const key = `auth_${token}`;
-      // logging to console for debugging purpose
-      console.log('key: ', key);
 
-      // retrieve userId from redisClient
+      // retrieve userId stored in redis
       const userId = await redisClient.get(key);
-      // logging to console for debugging purpose
-      console.log('UserId: ', userId);
+
+      // return unauthorized if token is invalid
       if (!userId) {
         // logging to console for debugging purpose
         console.error('Error finding userId', userId);
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      // Retrieve the user based on the userId
+      // Retrieve the user from database based on the userId
       const user = await DBCrud.findUser({ _id: new ObjectId(userId) });
-      // logging to console for debugging purpose
-      console.log('User: ', user);
 
+      // return unauthorized if userId does not exist in database
       if (!user) {
-        // logging to console for debugging purpose
+      //   // logging to console for debugging purpose
         console.error('Error finding user', user);
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
+      // Check if the name is provided
       if (!name) {
         // logging to console for debugging purpose
         console.error('Missing name: ', name);
         return res.status(400).json({ error: 'Missing name' });
       }
 
+      // Accepted file types
       const acceptedTypes = ['folder', 'file', 'image'];
 
+      // Check if the type is valid
       if (!type || !acceptedTypes.includes(type)) {
         // logging to console for debugging purpose
         console.error('Missing type: ', type, 'or not in accepted types');
         return res.status(400).json({ error: 'Missing type' });
       }
 
+      // Check if data is provided for non-folder types
       if (!data && type !== 'folder') {
         // logging to console for debugging purpose
         console.error('Data not found: ', data, 'or type is not folder');
         return res.status(400).json({ error: 'Missing data' });
       }
 
-      const parentId = req.body.parentId || 0;
+      // If parentId is not 0, it is a subfolder, validate the parent folder
       if (parentId !== 0) {
-        const parentFile = await DBCrud.findFile({ _id: new ObjectId(parentId) });
+        const parentFolder = await DBCrud.findFile({ _id: new ObjectId(parentId) });
 
-        if (!parentFile) {
+        // Check if the parent folder exists
+        if (!parentFolder) {
           // logging to console for debugging purpose
-          console.error('parentFile not found: ', parentFile);
+          console.error('parentFolder not found: ', parentFolder);
           return res.status(400).json({ error: 'Parent not found' });
         }
 
-        if (parentFile.type !== 'folder') {
+        if (parentFolder.type !== 'folder') {
           // logging to console for debugging purpose
-          console.error('parentFile not a folder: ', data);
+          console.error('parentFolder not a folder: ', data);
           return res.status(400).json({ error: 'Parent is not a folder' });
         }
       }
 
-      if (!isPublic) {
-        // logging to console for debugging purpose
-        console.error('isPublic not found: ', isPublic);
-        console.log('isPublic is optional');
-      }
-
-      // Create a new file document
-      const newFile = {
+      // Create a new file or folder document
+      const newFileOrFolder = {
         userId: new ObjectId(user._id),
         name,
         type,
-        isPublic: isPublic || false,
+        isPublic,
         parentId,
       };
 
       // If the type is folder, add the new file document in the DB
       if (type === 'folder') {
-        const dbResult = await DBCrud.addNewFile(newFile);
+        const dbResult = await DBCrud.addNewFile(newFileOrFolder);
         // logging to console for debugging
         console.log('new folder file added: ', dbResult);
-        // update the newFile id with the inserted id
-        newFile.id = dbResult.insertedId;
-        return res.status(201).json(newFile);
+        // update the newFileOrFolder id with the inserted id
+        newFileOrFolder.id = dbResult.insertedId;
+        return res.status(201).json(newFileOrFolder);
       }
 
       // For type=file|image, store the file locally
-      const folderStorage = process.env.FOLDER_PATH || '/tmp/files_manager';
-      const fullpath = path.join(process.cwd(), folderStorage);
-      // logging to console for debugging
-      console.log('folderStorage: ', fullpath);
+      const localPath = saveFileLocally(data);
 
-      const localPath = path.join(fullpath, `${uuidv4()}`);
-      // logging to console for debugging
-      console.log('localPath: ', localPath);
-      console.log(process.cwd());
-
-      try {
-        // Check if the directory exists, if not, create it
-        await fs.promises.access(fullpath);
-        console.log('directory exists');
-      } catch (err) {
-        console.log('creating folder...');
-        await fs.promises.mkdir(fullpath, { recursive: true });
+      // return error if file could not be saved locally
+      if (!localPath) {
+        console.error('could not save file locally: ');
+        res.status(500).json({ error: 'Internal Server Error' });
       }
 
-      // Save the file locally
-      await fs.promises.writeFile(localPath, Buffer.from(data, 'base64'));
+      // Update the newFileOrFolder document with the localPath
+      newFileOrFolder.localPath = pathToBeRetruned;
       // logging to console for debugging
-      console.log('written data to file');
-
-      // Update the newFile document with the localPath
-      newFile.localPath = localPath;
-      // logging to console for debugging
-      console.log('newFile.localPath" ', newFile.localPath);
+      console.log('newFileOrFolder.localPath" ', newFileOrFolder.localPath);
 
       // Add the new file document in the collection files
-      const dbResult = await DBCrud.addNewFile(newFile);
+      const dbResult = await DBCrud.addNewFile(newFileOrFolder);
       // logging to console for debugging
-      console.log('dbResult for localPath', dbResult);
-      newFile.id = dbResult.insertedId;
+      // console.log('dbResult for localPath', dbResult);
+      newFileOrFolder.id = dbResult.insertedId;
       // logging to console for debugging
-      console.log('newFile._id: ', newFile.id);
+      console.log('newFileOrFolder._id: ', newFileOrFolder.id);
 
-      // Enqueue job to generate thumbnails
-      await fileQueue.add({ fileId: newFile.id, userId: newFile.userId });
+      // check if file type is image before enqueing to create a thumbnail
+      if (newFileOrFolder.type === 'image') {
+        // Get MIME-type based on the file name
+        const mimeType = mime.lookup(data);
+        if (mimeType.startsWith('image/')) {
+          // Enqueue job to generate thumbnails
+          await fileQueue.add({ fileId: newFileOrFolder.id, userId: newFileOrFolder.userId });
+        } else {
+          throw new Error('The mimeType of the supposed image is not an image mimeType');
+        }
+      }
 
-      return res.status(201).json(newFile);
+      // remove unecessary details before returning to the user
+      if (newFileOrFolder._id) delete newFileOrFolder._id;
+      if (newFileOrFolder.localPath) delete newFileOrFolder.localPath;
+
+      // return file details to the user
+      return res.status(201).json(newFileOrFolder);
+      // return res.status(200).json();
     } catch (error) {
       console.error('Error in postUpload request: ', error.message);
       return res.status(500).json({ error: 'Internal Server Error' });
