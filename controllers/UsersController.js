@@ -6,7 +6,7 @@ import { userQueue } from '../worker';
 import DBCrud from '../utils/db_manager';
 
 // Define the UsersController class
-class UsersController {
+export default class UserController {
   // Endpoint: POST /users
   static async postNew(req, res) {
     try {
@@ -76,13 +76,10 @@ class UsersController {
       if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
       // return user email and id if found
-      return res.status(200).json({ id: userId, email: user.email });
+      return res.status(200).json({ email: user.email, id: userId });
     } catch (error) {
       console.error('error in getMe method: ', error.message);
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
 }
-
-// Export the UsersController class for use in other modules
-export default UsersController;
