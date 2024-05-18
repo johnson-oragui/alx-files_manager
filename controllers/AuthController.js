@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import sha1 from 'sha1';
 import { v4 as uuidv4 } from 'uuid';
 import DBCrud from '../utils/db_manager';
@@ -58,7 +59,7 @@ export default class AuthController {
       // console.log(storeUserId);
 
       // return error message if redisTokenKey was not successfully stored in redis
-      if (storeUserId !== 'OK') return res.status(500).json({ error: 'Internal Server Error' });
+      // if (storeUserId !== 'OK') return res.status(500).json({ error: 'Internal Server Error' });
 
       return res.status(200).json({ token: foundUserToken });
     } catch (error) {
