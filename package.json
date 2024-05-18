@@ -8,10 +8,8 @@
     "check-lint": "lint [0-9]*.js",
     "start-server": "nodemon --exec babel-node --presets @babel/preset-env ./server.js",
     "start-worker": "nodemon --exec babel-node --presets @babel/preset-env ./worker.js",
-    "dev": "nodemon --exec babel-node --presets @babel/preset-env server",
-    "test": "./node_modules/.bin/mocha --require @babel/register --exit ",
-    "test5": "./node_modules/.bin/mocha --require @babel/register --exit tests/test5/",
-    "test3": "./node_modules/.bin/mocha --require @babel/register --exit tests/test3/"
+    "dev": "nodemon --exec babel-node --presets @babel/preset-env",
+    "test": "./node_modules/.bin/mocha --require @babel/register --exit "
   },
   "author": "",
   "license": "ISC",
