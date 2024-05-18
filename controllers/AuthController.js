@@ -4,7 +4,7 @@ import DBCrud from '../utils/db_manager';
 import redisClient from '../utils/redis';
 import isValidBase64 from '../utils/validBase64';
 
-class AuthController {
+export default class AuthController {
   static async getConnect(req, res) {
     try {
       // retrieve the basic auth base64 strings
@@ -91,5 +91,3 @@ class AuthController {
     }
   }
 }
-
-export default AuthController;

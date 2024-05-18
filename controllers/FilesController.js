@@ -7,7 +7,7 @@ import DBCrud from '../utils/db_manager';
 import redisClient from '../utils/redis';
 import { fileQueue } from '../worker';
 
-class FilesController {
+export default class FilesController {
   static async postUpload(req, res) {
     try {
       // retrieve the token from header
@@ -412,5 +412,3 @@ class FilesController {
     }
   }
 }
-
-export default FilesController;

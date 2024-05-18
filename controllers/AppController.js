@@ -3,7 +3,7 @@ import redis from '../utils/redis';
 import db from '../utils/db';
 
 // Define the AppController class
-class AppController {
+export default class AppController {
   // Endpoint: GET /status
   static async getStatus(req, res) {
     try {
@@ -49,6 +49,3 @@ class AppController {
     }
   }
 }
-
-// Export the AppController class for use in other modules
-export default AppController;
