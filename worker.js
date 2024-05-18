@@ -12,16 +12,17 @@ fileQueue.process(async (job) => {
     if (!fileId) throw new Error('Missing fileId');
     if (!userId) throw new Error('Missing userId');
 
-    const file = await DBCrud.findFile({ _id: ObjectId(fileId), userId: ObjectId(userId) });
+    const file = await DBCrud.findFile({ _id: new ObjectId(fileId), userId: new ObjectId(userId) });
     if (!file) throw new Error('File not found');
     const path = file.localPath;
-    fs.writeFileSync(`${path}_500`, await imageThumb(path, { width: 500 }));
+    // console.log('local path from image thumb: ', path);
+    fs.promises.writeFile(`${path}_500`, await imageThumb(path, { width: 500 }));
 
-    fs.writeFileSync(`${path}_250`, await imageThumb(path, { width: 250 }));
+    fs.promises.writeFile(`${path}_250`, await imageThumb(path, { width: 250 }));
 
-    fs.writeFileSync(`${path}_100`, await imageThumb(path, { width: 100 }));
+    fs.promises.writeFile(`${path}_100`, await imageThumb(path, { width: 100 }));
   } catch (error) {
-    console.error('An error occurred:', error);
+    console.error('An error occurred: ', error.message);
   }
 });
 
