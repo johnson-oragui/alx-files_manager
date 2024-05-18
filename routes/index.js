@@ -1,7 +1,7 @@
 // Import the Express framework
 import express from 'express';
 // import the UsersController from controllers directory
-import UsersController from '../controllers/UsersController';
+import UserController from '../controllers/UsersController';
 // import the AuthController from controllers directory
 import AuthController from '../controllers/AuthController';
 // import FilesController from controllers directory
@@ -19,7 +19,7 @@ router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStats);
 
 // Define the route for adding users
-router.post('/users', UsersController.postNew);
+router.post('/users', UserController.postNew);
 
 // Define route for Auth
 router.get('/connect', AuthController.getConnect);
@@ -28,7 +28,7 @@ router.get('/connect', AuthController.getConnect);
 router.get('/disconnect', AuthController.getDisconnect);
 
 // define route for
-router.get('/users/me', UsersController.getMe);
+router.get('/users/me', UserController.getMe);
 
 //
 router.post('/files', FilesController.postUpload);
