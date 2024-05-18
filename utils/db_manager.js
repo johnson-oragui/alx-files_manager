@@ -31,7 +31,7 @@ class DBCrud {
       // Wait until the connection is established before using collections
       await dbclient.connect();
       const newFile = await dbclient.filesCollection.insertOne(newFileData);
-      console.log('Added file:', newFile);
+      // console.log('Added file:', newFile);
       return newFile;
     } catch (err) {
       if (err.code === 11000) {
