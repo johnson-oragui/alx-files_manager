@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb'; // Import ObjectId for MongoDB object IDs
 import DBCrud from '../utils/db_manager'; // Import DBCrud for database operations
 import redisClient from '../utils/redis'; // Import redisClient for Redis operations
 import { fileQueue } from '../worker'; // Import fileQueue for background job processing
-import { saveFileLocally, pathToBeRetruned } from '../utils/saveFileLocally';
+import { saveFileLocally, pathToBeReturned } from '../utils/saveFileLocally';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -12,10 +12,13 @@ export default class FilesController {
       const {
         name, // Filename
         type, // Type of the file (folder, file, image)
-        parentId = 0, // Parent ID, default is 0 (root)
+        parentId, // Parent ID, default is 0 (root)
         isPublic = false, // Public flag, default is false
         data, // Base64 encoded file data
       } = req.body;
+
+      // fallback to 0 if parentId not provided
+      if (!parentId) parentId = '0';
 
       // retrieve the token from header
       const token = req.header('x-token');
@@ -74,8 +77,15 @@ export default class FilesController {
         return res.status(400).json({ error: 'Missing data' });
       }
 
+      // check if user is uploading file as folder
+      if (data && type === 'folder') {
+        // logging to console for debugging purpose
+        console.error('cannot upload file as folder: ', data, 'cannot upload file as folder');
+        return res.status(400).json({ error: 'cannot upload file as folder' });
+      }
+
       // If parentId is not 0, it is a subfolder, validate the parent folder
-      if (parentId !== 0) {
+      if (parentId !== '0') {
         const parentFolder = await DBCrud.findFile({ _id: new ObjectId(parentId) });
 
         // Check if the parent folder exists
@@ -112,7 +122,7 @@ export default class FilesController {
       }
 
       // For type=file|image, store the file locally
-      const localPath = saveFileLocally(data);
+      const localPath = await saveFileLocally(data);
 
       // return error if file could not be saved locally
       if (!localPath) {
@@ -121,7 +131,7 @@ export default class FilesController {
       }
 
       // Update the newFileOrFolder document with the localPath
-      newFileOrFolder.localPath = pathToBeRetruned;
+      newFileOrFolder.localPath = pathToBeReturned;
       // logging to console for debugging
       console.log('newFileOrFolder.localPath" ', newFileOrFolder.localPath);
 
