@@ -43,4 +43,4 @@ export const saveFileLocally = async (data) => {
 // saveFileLocally would return a promise, manually export a pathname to be use
 // image thumbnail would throw an error if filepath is missing, as database insertion
 // would not wait for fs.promise.writefile to finish before conmencing operation
-export const pathToBeRetruned = `/tmp/files_manager/${UUIDSTRING}`;
+export const pathToBeReturned = `/tmp/files_manager/${UUIDSTRING}`;
