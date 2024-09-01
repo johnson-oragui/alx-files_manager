@@ -19,11 +19,11 @@ export default class AppController {
       };
 
       // Send the status as a JSON response with a status code of 200
-      res.status(200).json(status);
+      return res.status(200).json(status);
     } catch (error) {
       // Handle errors and send a 500 Internal Server Error response
       console.error('Error checking status:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
@@ -41,11 +41,11 @@ export default class AppController {
       };
 
       // Send the statistics as a JSON response with a status code of 200
-      res.status(200).json(usersAndFiles);
+      return res.status(200).json(usersAndFiles);
     } catch (error) {
       // Handle errors and send a 500 Internal Server Error response
       console.error('Error getting stats:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 }
